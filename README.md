@@ -1,5 +1,9 @@
 # NxOcto
 
+<p align="left">
+  <img src="nxocto.svg" alt="NxOcto Logo" width="600">
+</p>
+
 > AI-maintained utilities for Next.js projects. Plug-and-play TypeScript tools designed for automated development and easy integration.
 
 Auto-run utilities for Next.js projects with built-in image optimization, reference updates, and more. This repository is maintained through AI-assisted development, making it easy to add new features while keeping code quality high.
