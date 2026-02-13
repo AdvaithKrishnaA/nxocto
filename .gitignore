@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+coverage/
+*.tsbuildinfo
+pnpm-lock.yaml
+.kiro/
+tests/output/
+tests/sample-images/*.jpg
+tests/sample-images/*.png
+tests/sample-images/*.gif
+!tests/sample-images/README.md
+test-fixtures/

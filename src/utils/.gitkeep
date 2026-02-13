@@ -1,0 +1,2 @@
+# This directory is for shared utility functions used across multiple features
+# Feature-specific utilities should stay in their feature directory
