@@ -17,6 +17,13 @@ Auto-run utilities for Next.js projects with built-in image optimization, refere
 - Original file handling: keep, delete, or archive
 - Configurable quality settings
 
+### 🔧 SVG Optimizer
+- Optimize SVG files using SVGO
+- Precision control for numeric values
+- Multipass optimization for maximum savings
+- Batch processing of entire directories
+- Original file handling: keep, delete, or archive
+
 ## Installation
 
 Clone the repository and install dependencies:
@@ -58,6 +65,16 @@ nxocto convert-images ./images --output ./optimized
 
 # Convert to AVIF with custom quality
 nxocto convert-images ./images --output ./optimized --format avif --quality 85
+```
+
+### SVG Optimization
+
+```bash
+# Basic optimization
+nxocto optimize-svg ./icons
+
+# With custom precision
+nxocto optimize-svg ./public/icons --output ./public/optimized --precision 1
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
@@ -121,6 +138,36 @@ nxocto convert-images ./images --archive ./archive --output ./optimized
 
 # Automated workflow (no prompts)
 nxocto convert-images ./images --delete --yes --output ./optimized
+```
+
+### optimize-svg
+
+Optimize SVG files for smaller size.
+
+```bash
+nxocto optimize-svg <source-folder> [options]
+```
+
+**Options:**
+- `--output <folder>` - Output folder for optimized SVGs
+- `--precision <number>` - Decimal precision for numeric values (default: 2)
+- `--no-multipass` - Disable multipass optimization
+- `--refs <folders>` - Folders to update references in
+- `--delete` - Delete original files after optimization (prompts for confirmation)
+- `--archive <folder>` - Move original files to archive folder (prompts for confirmation)
+- `--yes, -y` - Skip confirmation prompts (for automation)
+
+**Examples:**
+
+```bash
+# Basic optimization
+nxocto optimize-svg ./icons
+
+# With custom precision and output
+nxocto optimize-svg ./public/icons --output ./public/optimized --precision 1
+
+# Archive originals
+nxocto optimize-svg ./icons --archive ./archive --output ./optimized
 ```
 
 ## Programmatic Usage
