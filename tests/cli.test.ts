@@ -133,4 +133,58 @@ describe('CLI', () => {
       expect(error.stderr).toContain('Unknown command');
     }
   });
+
+  describe('optimize-svg', () => {
+    const testSvgsDir = path.join(testDir, 'svgs');
+
+    beforeEach(async () => {
+      await fs.mkdir(testSvgsDir, { recursive: true });
+      await fs.writeFile(
+        path.join(testSvgsDir, 'test.svg'),
+        `<svg><circle cx="50" cy="50" r="40" fill="red" /><!-- comment --></svg>`
+      );
+    });
+
+    it('should optimize SVGs via CLI', async () => {
+      const { stdout } = await execAsync(
+        `node ${cliPath} optimize-svg ${testSvgsDir} --output ${testOutputDir}`
+      );
+
+      expect(stdout).toContain('Optimized 1/1 SVGs');
+      expect(stdout).toContain('Total savings');
+
+      // Verify output file exists
+      const outputFile = path.join(testOutputDir, 'test.svg');
+      const stats = await fs.stat(outputFile);
+      expect(stats.isFile()).toBe(true);
+
+      const content = await fs.readFile(outputFile, 'utf-8');
+      expect(content).not.toContain('<!-- comment -->');
+    });
+
+    it('should respect precision via CLI', async () => {
+      await fs.writeFile(
+        path.join(testSvgsDir, 'precision.svg'),
+        `<svg><circle cx="50.123" cy="50.456" r="40" /></svg>`
+      );
+
+      await execAsync(
+        `node ${cliPath} optimize-svg ${testSvgsDir} --output ${testOutputDir} --precision 1`
+      );
+
+      const content = await fs.readFile(path.join(testOutputDir, 'precision.svg'), 'utf-8');
+      expect(content).toContain('cx="50.1"');
+    });
+
+    it('should archive originals via CLI', async () => {
+      await execAsync(
+        `node ${cliPath} optimize-svg ${testSvgsDir} --output ${testOutputDir} --archive ${testArchiveDir} --yes`
+      );
+
+      // Verify original is archived
+      const archivedFile = path.join(testArchiveDir, 'test.svg');
+      const stats = await fs.stat(archivedFile);
+      expect(stats.isFile()).toBe(true);
+    });
+  });
 });

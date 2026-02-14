@@ -24,3 +24,23 @@ export interface ReferenceUpdate {
   newRef: string;
   updated: boolean;
 }
+
+export interface SvgOptimizerOptions {
+  multipass?: boolean;
+  floatPrecision?: number;
+  outputDir?: string;
+  referenceDirs?: string[];
+  deleteOriginals?: boolean;
+  archiveDir?: string;
+}
+
+export interface SvgOptimizerResult {
+  success: boolean;
+  inputPath: string;
+  outputPath?: string;
+  referencesUpdated?: number;
+  originalHandled?: 'deleted' | 'archived' | 'kept';
+  error?: string;
+  originalSize?: number;
+  optimizedSize?: number;
+}

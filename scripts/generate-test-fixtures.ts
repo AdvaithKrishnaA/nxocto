@@ -53,6 +53,34 @@ async function generateTestImages() {
   console.log('  ✓ Generated 4 test images');
 }
 
+async function generateTestSvgs() {
+  await fs.mkdir(IMAGES_DIR, { recursive: true });
+
+  console.log('Generating test SVGs...');
+
+  const iconSvg = `<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Optimized icon -->
+  <circle cx="50.123" cy="50.456" r="40" fill="#ff0000" />
+  <rect x="20" y="20" width="60" height="60" fill="none" stroke="black" />
+</svg>`;
+
+  const illustrationSvg = `<svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:rgb(255,255,0);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <ellipse cx="200" cy="70" rx="85" ry="55" fill="url(#grad1)" />
+  <text fill="#ffffff" font-size="45" font-family="Verdana" x="90" y="86">SVG</text>
+</svg>`;
+
+  await fs.writeFile(path.join(IMAGES_DIR, 'icon.svg'), iconSvg);
+  await fs.writeFile(path.join(IMAGES_DIR, 'illustration.svg'), illustrationSvg);
+
+  console.log('  ✓ Generated 2 test SVGs');
+}
+
 async function generateTestCode() {
   await fs.mkdir(CODE_DIR, { recursive: true });
 
@@ -73,6 +101,7 @@ export default function Hero() {
         height={600}
       />
       <img src="/images/logo.png" alt="Logo" />
+      <img src="/images/icon.svg" alt="Icon" />
     </div>
   );
 }
@@ -93,6 +122,10 @@ export default function Hero() {
 
 .icon {
   content: url('/images/icon.png');
+}
+
+.svg-icon {
+  background-image: url('/images/icon.svg');
 }
 `
   );
@@ -166,6 +199,15 @@ node dist/cli.js convert-images test-fixtures/images --output test-fixtures/outp
 node dist/cli.js convert-images test-fixtures/images --output test-fixtures/output --delete --yes
 \`\`\`
 
+### SVG Optimization
+\`\`\`bash
+# Basic optimization
+node dist/cli.js optimize-svg test-fixtures/images --output test-fixtures/output
+
+# With precision and reference updates
+node dist/cli.js optimize-svg test-fixtures/images --output test-fixtures/output --precision 1 --refs test-fixtures/code
+\`\`\`
+
 ### Different Formats
 \`\`\`bash
 # WebP (default)
@@ -192,6 +234,7 @@ async function main() {
 
   try {
     await generateTestImages();
+    await generateTestSvgs();
     await generateTestCode();
     await generateReadme();
 
