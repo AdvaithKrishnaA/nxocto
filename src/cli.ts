@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { convertImagesInFolders, handleOriginalsAfterReview } from './features/image-converter/imageConverter';
 import { optimizeSvgsInFolders, handleOriginalsAfterReview as handleSvgOriginalsAfterReview } from './features/svg-optimizer/svgOptimizer';
+import { extractMetadata } from './features/metadata-extractor/metadataExtractor';
 import * as readline from 'readline';
 import * as path from 'path';
 
@@ -26,6 +27,7 @@ if (args.length === 0) {
   console.log('Commands:');
   console.log('  convert-images              Convert images to WebP/AVIF');
   console.log('  optimize-svg                Optimize SVG files');
+  console.log('  extract-metadata            Extract dimensions and metadata from assets');
   console.log('');
   console.log('General Options:');
   console.log('  --output <folder>           Output folder for processed files');
@@ -42,10 +44,16 @@ if (args.length === 0) {
   console.log('  --precision <number>        Decimal precision (default: 2)');
   console.log('  --no-multipass              Disable multipass optimization');
   console.log('');
+  console.log('extract-metadata Options:');
+  console.log('  --output-file <file>        Output JSON file (default: metadata.json)');
+  console.log('  --no-size                   Exclude file size from metadata');
+  console.log('  --no-recursive              Disable recursive scanning');
+  console.log('');
   console.log('Examples:');
   console.log('  nxocto convert-images ./images --output ./optimized');
   console.log('  nxocto optimize-svg ./public/icons --precision 3');
   console.log('  nxocto optimize-svg ./icons --delete --yes');
+  console.log('  nxocto extract-metadata ./public/assets --output-file ./assets.json');
   process.exit(1);
 }
 
@@ -134,6 +142,40 @@ if (command === 'convert-images') {
           }
         });
       }
+    })
+    .catch(err => {
+      console.error('Error:', err.message);
+      process.exit(1);
+    });
+} else if (command === 'extract-metadata') {
+  const sourceFolder = args[1];
+
+  if (!sourceFolder) {
+    console.error('Error: Source folder is required');
+    process.exit(1);
+  }
+
+  // Parse options
+  let outputFile = 'metadata.json';
+  let includeSize = true;
+  let recursive = true;
+
+  for (let i = 2; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg === '--output-file' && args[i + 1]) {
+      outputFile = args[++i];
+    } else if (arg === '--no-size') {
+      includeSize = false;
+    } else if (arg === '--no-recursive') {
+      recursive = false;
+    }
+  }
+
+  extractMetadata(sourceFolder, { outputFile, includeSize, recursive })
+    .then(result => {
+      console.log(`✓ Extracted metadata from ${result.count} assets`);
+      console.log(`  Output: ${result.outputFile}`);
     })
     .catch(err => {
       console.error('Error:', err.message);

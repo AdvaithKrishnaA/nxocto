@@ -208,6 +208,15 @@ node dist/cli.js optimize-svg test-fixtures/images --output test-fixtures/output
 node dist/cli.js optimize-svg test-fixtures/images --output test-fixtures/output --precision 1 --refs test-fixtures/code
 \`\`\`
 
+### Asset Metadata Extraction
+\`\`\`bash
+# Basic extraction
+node dist/cli.js extract-metadata test-fixtures/images --output-file test-fixtures/metadata.json
+
+# Without file size
+node dist/cli.js extract-metadata test-fixtures/images --output-file test-fixtures/metadata-no-size.json --no-size
+\`\`\`
+
 ### Different Formats
 \`\`\`bash
 # WebP (default)
@@ -241,6 +250,7 @@ async function main() {
     console.log('\n✅ Test fixtures ready in test-fixtures/');
     console.log('\nTry running:');
     console.log('  node dist/cli.js convert-images test-fixtures/images --output test-fixtures/output');
+    console.log('  node dist/cli.js extract-metadata test-fixtures/images --output-file test-fixtures/metadata.json');
     console.log('\nSee test-fixtures/README.md for more examples.');
   } catch (error) {
     console.error('Error generating fixtures:', error);

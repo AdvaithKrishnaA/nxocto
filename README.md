@@ -24,6 +24,13 @@ Auto-run utilities for Next.js projects with built-in image optimization, refere
 - Batch processing of entire directories
 - Original file handling: keep, delete, or archive
 
+### 🔧 Asset Metadata Extractor
+- Extract dimensions (width, height) and aspect ratio
+- Extract file size and format information
+- Batch processing of entire directories
+- Output results to a clean JSON file
+- Perfect for Next.js `next/image` integration
+
 ## Installation
 
 Clone the repository and install dependencies:
@@ -75,6 +82,16 @@ nxocto optimize-svg ./icons
 
 # With custom precision
 nxocto optimize-svg ./public/icons --output ./public/optimized --precision 1
+```
+
+### Asset Metadata Extraction
+
+```bash
+# Extract metadata to metadata.json
+nxocto extract-metadata ./public/images
+
+# Extract to custom file without size info
+nxocto extract-metadata ./public/assets --output-file ./assets-info.json --no-size
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
@@ -170,6 +187,29 @@ nxocto optimize-svg ./public/icons --output ./public/optimized --precision 1
 nxocto optimize-svg ./icons --archive ./archive --output ./optimized
 ```
 
+### extract-metadata
+
+Extract dimensions and metadata from assets.
+
+```bash
+nxocto extract-metadata <source-folder> [options]
+```
+
+**Options:**
+- `--output-file <file>` - Output JSON file (default: metadata.json)
+- `--no-size` - Exclude file size from metadata
+- `--no-recursive` - Disable recursive scanning
+
+**Examples:**
+
+```bash
+# Basic extraction
+nxocto extract-metadata ./public/images
+
+# Custom output file
+nxocto extract-metadata ./assets --output-file ./data/metadata.json
+```
+
 ## Programmatic Usage
 
 You can also use NxOcto programmatically in your Node.js scripts:
@@ -199,6 +239,16 @@ results.forEach(result => {
     console.error(`✗ ${result.inputPath}: ${result.error}`);
   }
 });
+
+import { extractMetadata } from 'nxocto';
+
+// Extract metadata
+const metadataResult = await extractMetadata('./public/images', {
+  outputFile: './data/metadata.json',
+  includeSize: true
+});
+
+console.log(`✓ Processed ${metadataResult.count} assets`);
 ```
 
 ## Development

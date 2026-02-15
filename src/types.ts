@@ -44,3 +44,25 @@ export interface SvgOptimizerResult {
   originalSize?: number;
   optimizedSize?: number;
 }
+
+export interface AssetMetadata {
+  width?: number;
+  height?: number;
+  format?: string;
+  size?: number;
+  aspectRatio?: number;
+}
+
+export interface MetadataOptions {
+  outputFile?: string;
+  includeSize?: boolean;
+  recursive?: boolean;
+}
+
+export interface MetadataResult {
+  success: boolean;
+  count: number;
+  outputFile: string;
+  data: Record<string, AssetMetadata>;
+  error?: string;
+}
