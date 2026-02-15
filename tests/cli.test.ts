@@ -187,4 +187,28 @@ describe('CLI', () => {
       expect(stats.isFile()).toBe(true);
     });
   });
+
+  describe('extract-metadata', () => {
+    it('should extract metadata via CLI', async () => {
+      const { stdout } = await execAsync(
+        `node ${cliPath} extract-metadata ${testImagesDir} --output-file ${testOutputDir}/metadata.json`
+      );
+
+      expect(stdout).toContain('Extracted metadata from 1 assets');
+      expect(stdout).toContain('metadata.json');
+
+      const metadata = JSON.parse(await fs.readFile(path.join(testOutputDir, 'metadata.json'), 'utf-8'));
+      expect(metadata['cli-test.jpg']).toBeDefined();
+      expect(metadata['cli-test.jpg'].width).toBe(50);
+    });
+
+    it('should respect --no-size flag', async () => {
+      await execAsync(
+        `node ${cliPath} extract-metadata ${testImagesDir} --output-file ${testOutputDir}/no-size.json --no-size`
+      );
+
+      const metadata = JSON.parse(await fs.readFile(path.join(testOutputDir, 'no-size.json'), 'utf-8'));
+      expect(metadata['cli-test.jpg'].size).toBeUndefined();
+    });
+  });
 });
