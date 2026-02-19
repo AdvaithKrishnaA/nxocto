@@ -2,6 +2,7 @@
 import { convertImagesInFolders, handleOriginalsAfterReview } from './features/image-converter/imageConverter';
 import { optimizeSvgsInFolders, handleOriginalsAfterReview as handleSvgOriginalsAfterReview } from './features/svg-optimizer/svgOptimizer';
 import { extractMetadata } from './features/metadata-extractor/metadataExtractor';
+import { findUnusedAssets, handleUnusedAssets } from './features/unused-assets/unusedAssets';
 import * as readline from 'readline';
 import * as path from 'path';
 
@@ -28,6 +29,7 @@ if (args.length === 0) {
   console.log('  convert-images              Convert images to WebP/AVIF');
   console.log('  optimize-svg                Optimize SVG files');
   console.log('  extract-metadata            Extract dimensions and metadata from assets');
+  console.log('  find-unused                 Find assets that are not referenced in code');
   console.log('');
   console.log('General Options:');
   console.log('  --output <folder>           Output folder for processed files');
@@ -49,11 +51,19 @@ if (args.length === 0) {
   console.log('  --no-size                   Exclude file size from metadata');
   console.log('  --no-recursive              Disable recursive scanning');
   console.log('');
+  console.log('find-unused Options:');
+  console.log('  --refs <folder1,folder2>    Folders to scan for references (required)');
+  console.log('  --output-file <file>        Save results to a JSON file');
+  console.log('  --delete                    Delete unused assets');
+  console.log('  --archive <folder>          Move unused assets to archive folder');
+  console.log('  --no-recursive              Disable recursive scanning of assets folder');
+  console.log('');
   console.log('Examples:');
   console.log('  nxocto convert-images ./images --output ./optimized');
   console.log('  nxocto optimize-svg ./public/icons --precision 3');
   console.log('  nxocto optimize-svg ./icons --delete --yes');
   console.log('  nxocto extract-metadata ./public/assets --output-file ./assets.json');
+  console.log('  nxocto find-unused ./public/images --refs ./src,./pages');
   process.exit(1);
 }
 
@@ -176,6 +186,100 @@ if (command === 'convert-images') {
     .then(result => {
       console.log(`✓ Extracted metadata from ${result.count} assets`);
       console.log(`  Output: ${result.outputFile}`);
+    })
+    .catch(err => {
+      console.error('Error:', err.message);
+      process.exit(1);
+    });
+} else if (command === 'find-unused') {
+  const sourceFolder = args[1];
+
+  if (!sourceFolder) {
+    console.error('Error: Source folder is required');
+    process.exit(1);
+  }
+
+  // Parse options
+  let referenceDirs: string[] = [];
+  let deleteUnused = false;
+  let archiveDir: string | undefined;
+  let outputFile: string | undefined;
+  let recursive = true;
+  let skipConfirmation = false;
+
+  for (let i = 2; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg === '--refs' && args[i + 1]) {
+      referenceDirs = args[++i].split(',').map(d => d.trim());
+    } else if (arg === '--delete') {
+      deleteUnused = true;
+    } else if (arg === '--archive' && args[i + 1]) {
+      archiveDir = args[++i];
+    } else if (arg === '--output-file' && args[i + 1]) {
+      outputFile = args[++i];
+    } else if (arg === '--no-recursive') {
+      recursive = false;
+    } else if (arg === '--yes' || arg === '-y') {
+      skipConfirmation = true;
+    }
+  }
+
+  if (referenceDirs.length === 0) {
+    console.error('Error: --refs <folders> is required for find-unused');
+    process.exit(1);
+  }
+
+  findUnusedAssets(sourceFolder, {
+    referenceDirs,
+    deleteUnused: skipConfirmation ? deleteUnused : false,
+    archiveDir: skipConfirmation ? archiveDir : undefined,
+    outputFile,
+    recursive
+  })
+    .then(async (result) => {
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to find unused assets');
+      }
+
+      console.log(`✓ Scanned ${result.totalAssets} assets`);
+      console.log(`✓ Found ${result.unusedAssets.length} unused assets`);
+
+      if (result.unusedAssets.length > 0) {
+        result.unusedAssets.forEach(asset => {
+          console.log(`  ✗ ${asset}`);
+        });
+
+        // Handle destructive actions after review
+        if ((deleteUnused || archiveDir) && !skipConfirmation) {
+          console.log('');
+          const action = deleteUnused ? 'delete' : 'archive';
+          const confirmed = await askConfirmation(
+            `Do you want to ${action} the unused assets? (y/n): `
+          );
+
+          if (confirmed) {
+            const handleResult = await handleUnusedAssets(result.unusedAssets, {
+              deleteUnused,
+              archiveDir
+            });
+
+            if (handleResult.deletedCount > 0) {
+              console.log(`✓ Deleted ${handleResult.deletedCount} unused assets`);
+            } else if (handleResult.archivedTo) {
+              console.log(`✓ Archived unused assets to ${handleResult.archivedTo}`);
+            }
+          } else {
+            console.log('Unused assets kept.');
+          }
+        } else if (skipConfirmation && (deleteUnused || archiveDir)) {
+          if (result.deletedCount) {
+            console.log(`✓ Deleted ${result.deletedCount} unused assets`);
+          } else if (result.archivedTo) {
+            console.log(`✓ Archived unused assets to ${result.archivedTo}`);
+          }
+        }
+      }
     })
     .catch(err => {
       console.error('Error:', err.message);

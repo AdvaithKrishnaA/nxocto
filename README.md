@@ -31,6 +31,13 @@ Auto-run utilities for Next.js projects with built-in image optimization, refere
 - Output results to a clean JSON file
 - Perfect for Next.js `next/image` integration
 
+### 🔧 Unused Asset Detector
+- Find assets not referenced in your code
+- Scan multiple source directories
+- Archive or delete unused files automatically
+- Support for recursive scanning
+- JSON output for automated reporting
+
 ## Installation
 
 Clone the repository and install dependencies:
@@ -92,6 +99,16 @@ nxocto extract-metadata ./public/images
 
 # Extract to custom file without size info
 nxocto extract-metadata ./public/assets --output-file ./assets-info.json --no-size
+```
+
+### Unused Asset Detection
+
+```bash
+# Find unused images in public/images
+nxocto find-unused ./public/images --refs ./src,./pages
+
+# Archive unused assets to a separate folder
+nxocto find-unused ./public/images --refs ./src --archive ./unused-assets --yes
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
@@ -210,6 +227,32 @@ nxocto extract-metadata ./public/images
 nxocto extract-metadata ./assets --output-file ./data/metadata.json
 ```
 
+### find-unused
+
+Find assets that are not referenced in your source code.
+
+```bash
+nxocto find-unused <source-folder> [options]
+```
+
+**Options:**
+- `--refs <folder1,folder2>` - Comma-separated folders to scan for references (required)
+- `--output-file <file>` - Save list of unused assets to a JSON file
+- `--delete` - Delete unused assets (prompts for confirmation)
+- `--archive <folder>` - Move unused assets to archive folder (prompts for confirmation)
+- `--no-recursive` - Disable recursive scanning of source folder
+- `--yes, -y` - Skip confirmation prompts
+
+**Examples:**
+
+```bash
+# Find unused images
+nxocto find-unused ./public/images --refs ./src,./pages
+
+# Archive unused assets
+nxocto find-unused ./public/images --refs ./src --archive ./unused-archive --yes
+```
+
 ## Programmatic Usage
 
 You can also use NxOcto programmatically in your Node.js scripts:
@@ -249,6 +292,16 @@ const metadataResult = await extractMetadata('./public/images', {
 });
 
 console.log(`✓ Processed ${metadataResult.count} assets`);
+
+import { findUnusedAssets } from 'nxocto';
+
+// Find unused assets
+const unusedResult = await findUnusedAssets('./public/images', {
+  referenceDirs: ['./src', './pages'],
+  deleteUnused: false
+});
+
+console.log(`✓ Found ${unusedResult.unusedAssets.length} unused assets`);
 ```
 
 ## Development

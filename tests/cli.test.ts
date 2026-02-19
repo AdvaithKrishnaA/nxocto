@@ -211,4 +211,62 @@ describe('CLI', () => {
       expect(metadata['cli-test.jpg'].size).toBeUndefined();
     });
   });
+
+  describe('find-unused', () => {
+    const testAssetsDir = path.join(testDir, 'assets_find_unused');
+    const testCodeDir = path.join(testDir, 'code_find_unused');
+
+    beforeEach(async () => {
+      await fs.mkdir(testAssetsDir, { recursive: true });
+      await fs.mkdir(testCodeDir, { recursive: true });
+
+      await fs.writeFile(path.join(testAssetsDir, 'apple.png'), 'used');
+      await fs.writeFile(path.join(testAssetsDir, 'orange.png'), 'unused');
+
+      await fs.writeFile(
+        path.join(testCodeDir, 'App.js'),
+        `const img = "apple.png";`
+      );
+    });
+
+    it('should find unused assets via CLI', async () => {
+      const { stdout } = await execAsync(
+        `node ${cliPath} find-unused ${testAssetsDir} --refs ${testCodeDir}`
+      );
+
+      expect(stdout).toContain('Scanned 2 assets');
+      expect(stdout).toContain('Found 1 unused assets');
+      expect(stdout).toContain('orange.png');
+      expect(stdout).not.toContain('apple.png');
+    });
+
+    it('should delete unused assets via CLI with --yes', async () => {
+      await execAsync(
+        `node ${cliPath} find-unused ${testAssetsDir} --refs ${testCodeDir} --delete --yes`
+      );
+
+      await expect(fs.access(path.join(testAssetsDir, 'orange.png'))).rejects.toThrow();
+      await expect(fs.access(path.join(testAssetsDir, 'apple.png'))).resolves.toBeUndefined();
+    });
+
+    it('should save results to JSON file via CLI', async () => {
+      const resultsFile = path.join(testOutputDir, 'unused-results.json');
+      await fs.mkdir(testOutputDir, { recursive: true });
+
+      await execAsync(
+        `node ${cliPath} find-unused ${testAssetsDir} --refs ${testCodeDir} --output-file ${resultsFile}`
+      );
+
+      const results = JSON.parse(await fs.readFile(resultsFile, 'utf-8'));
+      expect(results.unusedAssets).toContain(path.join(testAssetsDir, 'orange.png'));
+    });
+
+    it('should show error when --refs is missing', async () => {
+      try {
+        await execAsync(`node ${cliPath} find-unused ${testAssetsDir}`);
+      } catch (error: any) {
+        expect(error.stderr).toContain('Error: --refs <folders> is required');
+      }
+    });
+  });
 });

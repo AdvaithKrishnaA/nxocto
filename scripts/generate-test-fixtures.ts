@@ -226,6 +226,18 @@ node dist/cli.js convert-images test-fixtures/images --output test-fixtures/outp
 node dist/cli.js convert-images test-fixtures/images --output test-fixtures/output --format avif --quality 80
 \`\`\`
 
+### Find Unused Assets
+\`\`\`bash
+# Basic finding
+node dist/cli.js find-unused test-fixtures/images --refs test-fixtures/code
+
+# With JSON output
+node dist/cli.js find-unused test-fixtures/images --refs test-fixtures/code --output-file test-fixtures/unused.json
+
+# Archive unused (use --yes to skip confirmation)
+node dist/cli.js find-unused test-fixtures/images --refs test-fixtures/code --archive test-fixtures/unused-archive --yes
+\`\`\`
+
 ## Regenerating Fixtures
 
 To regenerate these test fixtures:
@@ -238,6 +250,23 @@ pnpm generate-fixtures
   console.log('  ✓ Generated README with usage instructions');
 }
 
+async function generateUnusedAssetsFixtures() {
+  console.log('Generating unused assets fixtures...');
+
+  // illustration.svg is already unused from previous steps,
+  // but let's add something more specific.
+  await sharp({
+    create: {
+      width: 100,
+      height: 100,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0.5 }
+    }
+  }).png().toFile(path.join(IMAGES_DIR, 'unused-asset.png'));
+
+  console.log('  ✓ Generated additional unused asset');
+}
+
 async function main() {
   console.log('🔧 Generating test fixtures for manual testing...\n');
 
@@ -245,6 +274,7 @@ async function main() {
     await generateTestImages();
     await generateTestSvgs();
     await generateTestCode();
+    await generateUnusedAssetsFixtures();
     await generateReadme();
 
     console.log('\n✅ Test fixtures ready in test-fixtures/');

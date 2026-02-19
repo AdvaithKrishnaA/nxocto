@@ -18,6 +18,24 @@ export interface ConversionResult {
   error?: string;
 }
 
+export interface UnusedAssetsOptions {
+  referenceDirs: string[];
+  deleteUnused?: boolean;
+  archiveDir?: string;
+  outputFile?: string;
+  recursive?: boolean;
+}
+
+export interface UnusedAssetResult {
+  success: boolean;
+  unusedAssets: string[];
+  totalAssets: number;
+  referenceDirs: string[];
+  archivedTo?: string;
+  deletedCount?: number;
+  error?: string;
+}
+
 export interface ReferenceUpdate {
   file: string;
   oldRef: string;
