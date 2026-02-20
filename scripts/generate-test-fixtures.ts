@@ -217,6 +217,15 @@ node dist/cli.js extract-metadata test-fixtures/images --output-file test-fixtur
 node dist/cli.js extract-metadata test-fixtures/images --output-file test-fixtures/metadata-no-size.json --no-size
 \`\`\`
 
+### Placeholder Generation
+\`\`\`bash
+# Basic generation
+node dist/cli.js generate-placeholders test-fixtures/images --output-file test-fixtures/placeholders.json
+
+# Custom size and quality
+node dist/cli.js generate-placeholders test-fixtures/images --output-file test-fixtures/placeholders-small.json --size 5 --quality 30
+\`\`\`
+
 ### Different Formats
 \`\`\`bash
 # WebP (default)

@@ -3,6 +3,7 @@ import { convertImagesInFolders, handleOriginalsAfterReview } from './features/i
 import { optimizeSvgsInFolders, handleOriginalsAfterReview as handleSvgOriginalsAfterReview } from './features/svg-optimizer/svgOptimizer';
 import { extractMetadata } from './features/metadata-extractor/metadataExtractor';
 import { findUnusedAssets, handleUnusedAssets } from './features/unused-assets/unusedAssets';
+import { generatePlaceholders } from './features/placeholder-generator/placeholderGenerator';
 import * as readline from 'readline';
 import * as path from 'path';
 
@@ -30,6 +31,7 @@ if (args.length === 0) {
   console.log('  optimize-svg                Optimize SVG files');
   console.log('  extract-metadata            Extract dimensions and metadata from assets');
   console.log('  find-unused                 Find assets that are not referenced in code');
+  console.log('  generate-placeholders       Generate blurry base64 placeholders for images');
   console.log('');
   console.log('General Options:');
   console.log('  --output <folder>           Output folder for processed files');
@@ -58,12 +60,19 @@ if (args.length === 0) {
   console.log('  --archive <folder>          Move unused assets to archive folder');
   console.log('  --no-recursive              Disable recursive scanning of assets folder');
   console.log('');
+  console.log('generate-placeholders Options:');
+  console.log('  --output-file <file>        Output JSON file (default: placeholders.json)');
+  console.log('  --size <number>             Width of placeholder (default: 10)');
+  console.log('  --quality <number>          Quality of placeholder (default: 50)');
+  console.log('  --no-recursive              Disable recursive scanning');
+  console.log('');
   console.log('Examples:');
   console.log('  nxocto convert-images ./images --output ./optimized');
   console.log('  nxocto optimize-svg ./public/icons --precision 3');
   console.log('  nxocto optimize-svg ./icons --delete --yes');
   console.log('  nxocto extract-metadata ./public/assets --output-file ./assets.json');
   console.log('  nxocto find-unused ./public/images --refs ./src,./pages');
+  console.log('  nxocto generate-placeholders ./public/images --size 20');
   process.exit(1);
 }
 
@@ -280,6 +289,43 @@ if (command === 'convert-images') {
           }
         }
       }
+    })
+    .catch(err => {
+      console.error('Error:', err.message);
+      process.exit(1);
+    });
+} else if (command === 'generate-placeholders') {
+  const sourceFolder = args[1];
+
+  if (!sourceFolder) {
+    console.error('Error: Source folder is required');
+    process.exit(1);
+  }
+
+  // Parse options
+  let outputFile = 'placeholders.json';
+  let size = 10;
+  let quality = 50;
+  let recursive = true;
+
+  for (let i = 2; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg === '--output-file' && args[i + 1]) {
+      outputFile = args[++i];
+    } else if (arg === '--size' && args[i + 1]) {
+      size = parseInt(args[++i], 10);
+    } else if (arg === '--quality' && args[i + 1]) {
+      quality = parseInt(args[++i], 10);
+    } else if (arg === '--no-recursive') {
+      recursive = false;
+    }
+  }
+
+  generatePlaceholders(sourceFolder, { outputFile, size, quality, recursive })
+    .then(result => {
+      console.log(`✓ Generated ${result.count} placeholders`);
+      console.log(`  Output: ${result.outputFile}`);
     })
     .catch(err => {
       console.error('Error:', err.message);

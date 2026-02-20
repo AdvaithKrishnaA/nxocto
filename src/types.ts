@@ -84,3 +84,18 @@ export interface MetadataResult {
   data: Record<string, AssetMetadata>;
   error?: string;
 }
+
+export interface PlaceholderOptions {
+  size?: number;
+  quality?: number;
+  outputFile?: string;
+  recursive?: boolean;
+}
+
+export interface PlaceholderResult {
+  success: boolean;
+  count: number;
+  outputFile: string;
+  data: Record<string, string>;
+  error?: string;
+}

@@ -38,6 +38,13 @@ Auto-run utilities for Next.js projects with built-in image optimization, refere
 - Support for recursive scanning
 - JSON output for automated reporting
 
+### 🔧 Placeholder Generator
+- Generate blurry base64 placeholders for images
+- Perfect for Next.js `next/image` integration
+- Configurable size and quality
+- Recursive directory scanning
+- JSON mapping output
+
 ## Installation
 
 Clone the repository and install dependencies:
@@ -109,6 +116,16 @@ nxocto find-unused ./public/images --refs ./src,./pages
 
 # Archive unused assets to a separate folder
 nxocto find-unused ./public/images --refs ./src --archive ./unused-assets --yes
+```
+
+### Placeholder Generation
+
+```bash
+# Generate placeholders to placeholders.json
+nxocto generate-placeholders ./public/images
+
+# Custom size for better blur effect
+nxocto generate-placeholders ./public/images --size 20 --output-file ./data/placeholders.json
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
@@ -251,6 +268,30 @@ nxocto find-unused ./public/images --refs ./src,./pages
 
 # Archive unused assets
 nxocto find-unused ./public/images --refs ./src --archive ./unused-archive --yes
+```
+
+### generate-placeholders
+
+Generate blurry base64 placeholders for images.
+
+```bash
+nxocto generate-placeholders <source-folder> [options]
+```
+
+**Options:**
+- `--output-file <file>` - Output JSON file (default: placeholders.json)
+- `--size <number>` - Width of placeholder in pixels (default: 10)
+- `--quality <number>` - Quality of placeholder (default: 50)
+- `--no-recursive` - Disable recursive scanning
+
+**Examples:**
+
+```bash
+# Basic generation
+nxocto generate-placeholders ./public/images
+
+# Custom size and output
+nxocto generate-placeholders ./public/images --size 20 --output-file ./placeholders.json
 ```
 
 ## Programmatic Usage

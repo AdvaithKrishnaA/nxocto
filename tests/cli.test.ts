@@ -269,4 +269,29 @@ describe('CLI', () => {
       }
     });
   });
+
+  describe('generate-placeholders', () => {
+    it('should generate placeholders via CLI', async () => {
+      const { stdout } = await execAsync(
+        `node ${cliPath} generate-placeholders ${testImagesDir} --output-file ${testOutputDir}/placeholders.json`
+      );
+
+      expect(stdout).toContain('Generated 1 placeholders');
+      expect(stdout).toContain('placeholders.json');
+
+      const placeholders = JSON.parse(await fs.readFile(path.join(testOutputDir, 'placeholders.json'), 'utf-8'));
+      expect(placeholders['cli-test.jpg']).toBeDefined();
+      expect(placeholders['cli-test.jpg']).toContain('data:image/jpeg;base64,');
+    });
+
+    it('should respect --size and --quality flags', async () => {
+      const { stdout } = await execAsync(
+        `node ${cliPath} generate-placeholders ${testImagesDir} --output-file ${testOutputDir}/options.json --size 5 --quality 10`
+      );
+
+      expect(stdout).toContain('Generated 1 placeholders');
+      const placeholders = JSON.parse(await fs.readFile(path.join(testOutputDir, 'options.json'), 'utf-8'));
+      expect(placeholders['cli-test.jpg']).toBeDefined();
+    });
+  });
 });

@@ -2,6 +2,7 @@ export { convertImage, convertImages, convertImagesInFolders, handleOriginalsAft
 export { optimizeSvg, optimizeSvgs, optimizeSvgsInFolders, handleOriginalsAfterReview as handleSvgOriginalsAfterReview } from './features/svg-optimizer/svgOptimizer';
 export { extractMetadata } from './features/metadata-extractor/metadataExtractor';
 export { findUnusedAssets, handleUnusedAssets } from './features/unused-assets/unusedAssets';
+export { generatePlaceholders } from './features/placeholder-generator/placeholderGenerator';
 export type {
   ImageConversionOptions,
   ConversionResult,
@@ -12,5 +13,7 @@ export type {
   MetadataOptions,
   MetadataResult,
   UnusedAssetsOptions,
-  UnusedAssetResult
+  UnusedAssetResult,
+  PlaceholderOptions,
+  PlaceholderResult
 } from './types';
