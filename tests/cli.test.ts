@@ -294,4 +294,36 @@ describe('CLI', () => {
       expect(placeholders['cli-test.jpg']).toBeDefined();
     });
   });
+
+  describe('resize-images', () => {
+    it('should resize images via CLI', async () => {
+      const { stdout } = await execAsync(
+        `node ${cliPath} resize-images ${testImagesDir} --widths 30,60 --output ${testOutputDir}`
+      );
+
+      expect(stdout).toContain('Processed 1/1 images');
+      expect(stdout).toContain('cli-test-30.jpg');
+      expect(stdout).toContain('cli-test-60.jpg');
+
+      // Verify output files exist
+      await expect(fs.stat(path.join(testOutputDir, 'cli-test-30.jpg'))).resolves.toBeDefined();
+      await expect(fs.stat(path.join(testOutputDir, 'cli-test-60.jpg'))).resolves.toBeDefined();
+    });
+
+    it('should convert format via CLI', async () => {
+      await execAsync(
+        `node ${cliPath} resize-images ${testImagesDir} --widths 40 --format webp --output ${testOutputDir}`
+      );
+
+      await expect(fs.stat(path.join(testOutputDir, 'cli-test-40.webp'))).resolves.toBeDefined();
+    });
+
+    it('should error when --widths is missing', async () => {
+      try {
+        await execAsync(`node ${cliPath} resize-images ${testImagesDir}`);
+      } catch (error: any) {
+        expect(error.stderr).toContain('Error: --widths <w1,w2,...> is required');
+      }
+    });
+  });
 });

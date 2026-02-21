@@ -45,6 +45,13 @@ Auto-run utilities for Next.js projects with built-in image optimization, refere
 - Recursive directory scanning
 - JSON mapping output
 
+### 🔧 Image Resizer
+- Batch resize images to specific widths
+- Preserve aspect ratio automatically
+- Support for multiple widths at once
+- Format conversion (WebP, AVIF)
+- Safety-first original file handling
+
 ## Installation
 
 Clone the repository and install dependencies:
@@ -126,6 +133,16 @@ nxocto generate-placeholders ./public/images
 
 # Custom size for better blur effect
 nxocto generate-placeholders ./public/images --size 20 --output-file ./data/placeholders.json
+```
+
+### Image Resizing
+
+```bash
+# Resize to multiple widths
+nxocto resize-images ./images --widths 300,600 --output ./resized
+
+# Resize and convert to WebP
+nxocto resize-images ./images --widths 800 --format webp --output ./optimized
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
@@ -294,6 +311,35 @@ nxocto generate-placeholders ./public/images
 nxocto generate-placeholders ./public/images --size 20 --output-file ./placeholders.json
 ```
 
+### resize-images
+
+Batch resize images to specific widths.
+
+```bash
+nxocto resize-images <source-folder> [options]
+```
+
+**Options:**
+- `--widths <w1,w2,...>` - Comma-separated widths to resize to (required)
+- `--output <folder>` - Output folder for resized images
+- `--format <webp|avif|original>` - Output format (default: original)
+- `--quality <1-100>` - Quality setting (default: 80)
+- `--delete` - Delete original files after processing (prompts for confirmation)
+- `--archive <folder>` - Move original files to archive folder (prompts for confirmation)
+- `--yes, -y` - Skip confirmation prompts
+
+**Examples:**
+
+```bash
+# Resize to multiple widths
+nxocto resize-images ./images --widths 300,600 --output ./resized
+
+# With format conversion
+nxocto resize-images ./images --widths 800 --format webp --output ./optimized
+```
+
+> Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
+
 ## Programmatic Usage
 
 You can also use NxOcto programmatically in your Node.js scripts:
@@ -343,6 +389,17 @@ const unusedResult = await findUnusedAssets('./public/images', {
 });
 
 console.log(`✓ Found ${unusedResult.unusedAssets.length} unused assets`);
+
+import { resizeImagesInFolders } from 'nxocto';
+
+// Resize images
+const resizeResults = await resizeImagesInFolders('./public/images', {
+  widths: [300, 600],
+  outputDir: './public/resized',
+  format: 'webp'
+});
+
+console.log(`✓ Processed ${resizeResults.length} images`);
 ```
 
 ## Development

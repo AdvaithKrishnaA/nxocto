@@ -226,6 +226,15 @@ node dist/cli.js generate-placeholders test-fixtures/images --output-file test-f
 node dist/cli.js generate-placeholders test-fixtures/images --output-file test-fixtures/placeholders-small.json --size 5 --quality 30
 \`\`\`
 
+  ### Image Resizing
+  \`\`\`bash
+  # Resize to multiple widths
+  node dist/cli.js resize-images test-fixtures/images --widths 300,600 --output test-fixtures/output
+
+  # Resize and convert to WebP
+  node dist/cli.js resize-images test-fixtures/images --widths 400 --format webp --output test-fixtures/output
+  \`\`\`
+
 ### Different Formats
 \`\`\`bash
 # WebP (default)
@@ -276,6 +285,23 @@ async function generateUnusedAssetsFixtures() {
   console.log('  ✓ Generated additional unused asset');
 }
 
+async function generateResizeFixtures() {
+  const resizeDir = path.join(FIXTURES_DIR, 'resize');
+  await fs.mkdir(resizeDir, { recursive: true });
+
+  console.log('Generating resize test fixtures...');
+
+  await sharp({
+    create: { width: 1200, height: 1200, channels: 3, background: { r: 100, g: 100, b: 255 } }
+  }).jpeg().toFile(path.join(resizeDir, 'landscape.jpg'));
+
+  await sharp({
+    create: { width: 800, height: 1200, channels: 3, background: { r: 255, g: 100, b: 255 } }
+  }).png().toFile(path.join(resizeDir, 'portrait.png'));
+
+  console.log('  ✓ Generated 2 resize test images');
+}
+
 async function main() {
   console.log('🔧 Generating test fixtures for manual testing...\n');
 
@@ -284,6 +310,7 @@ async function main() {
     await generateTestSvgs();
     await generateTestCode();
     await generateUnusedAssetsFixtures();
+    await generateResizeFixtures();
     await generateReadme();
 
     console.log('\n✅ Test fixtures ready in test-fixtures/');

@@ -4,6 +4,8 @@ import { optimizeSvgsInFolders, handleOriginalsAfterReview as handleSvgOriginals
 import { extractMetadata } from './features/metadata-extractor/metadataExtractor';
 import { findUnusedAssets, handleUnusedAssets } from './features/unused-assets/unusedAssets';
 import { generatePlaceholders } from './features/placeholder-generator/placeholderGenerator';
+import { resizeImagesInFolders, handleOriginalsAfterReview as handleResizeOriginalsAfterReview } from './features/image-resizer/imageResizer';
+import { ImageFormat } from './types';
 import * as readline from 'readline';
 import * as path from 'path';
 
@@ -32,6 +34,7 @@ if (args.length === 0) {
   console.log('  extract-metadata            Extract dimensions and metadata from assets');
   console.log('  find-unused                 Find assets that are not referenced in code');
   console.log('  generate-placeholders       Generate blurry base64 placeholders for images');
+  console.log('  resize-images               Resize images to specific widths');
   console.log('');
   console.log('General Options:');
   console.log('  --output <folder>           Output folder for processed files');
@@ -66,6 +69,16 @@ if (args.length === 0) {
   console.log('  --quality <number>          Quality of placeholder (default: 50)');
   console.log('  --no-recursive              Disable recursive scanning');
   console.log('');
+  console.log('resize-images Options:');
+  console.log('  --widths <w1,w2,...>        Comma-separated widths to resize to (required)');
+  console.log('  --format <webp|avif|original> Output format (default: original)');
+  console.log('  --quality <1-100>           Quality setting (default: 80)');
+  console.log('  --output <folder>           Output folder for resized images');
+  console.log('  --delete                    Delete original files after processing');
+  console.log('  --archive <folder>          Move original files to archive folder');
+  console.log('  --no-recursive              Disable recursive scanning');
+  console.log('  --yes, -y                   Skip confirmation prompts');
+  console.log('');
   console.log('Examples:');
   console.log('  nxocto convert-images ./images --output ./optimized');
   console.log('  nxocto optimize-svg ./public/icons --precision 3');
@@ -73,6 +86,7 @@ if (args.length === 0) {
   console.log('  nxocto extract-metadata ./public/assets --output-file ./assets.json');
   console.log('  nxocto find-unused ./public/images --refs ./src,./pages');
   console.log('  nxocto generate-placeholders ./public/images --size 20');
+  console.log('  nxocto resize-images ./images --widths 300,600 --output ./resized');
   process.exit(1);
 }
 
@@ -157,6 +171,108 @@ if (command === 'convert-images') {
         // Already handled in convertImagesInFolders
         results.forEach(r => {
           if (r.success && r.originalHandled) {
+            console.log(`  Original: ${r.originalHandled}`);
+          }
+        });
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err.message);
+      process.exit(1);
+    });
+} else if (command === 'resize-images') {
+  const sourceFolder = args[1];
+
+  if (!sourceFolder) {
+    console.error('Error: Source folder is required');
+    process.exit(1);
+  }
+
+  // Parse options
+  let outputFolder: string | undefined;
+  let widths: number[] = [];
+  let format: ImageFormat | 'original' = 'original';
+  let quality = 80;
+  let deleteOriginals = false;
+  let archiveDir: string | undefined;
+  let skipConfirmation = false;
+  let recursive = true;
+
+  for (let i = 2; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg === '--output' && args[i + 1]) {
+      outputFolder = args[++i];
+    } else if (arg === '--widths' && args[i + 1]) {
+      widths = args[++i].split(',').map(w => parseInt(w.trim(), 10));
+    } else if (arg === '--format' && args[i + 1]) {
+      const fmt = args[++i];
+      if (fmt === 'webp' || fmt === 'avif' || fmt === 'original') {
+        format = fmt as any;
+      }
+    } else if (arg === '--quality' && args[i + 1]) {
+      quality = parseInt(args[++i], 10);
+    } else if (arg === '--delete') {
+      deleteOriginals = true;
+    } else if (arg === '--archive' && args[i + 1]) {
+      archiveDir = args[++i];
+    } else if (arg === '--yes' || arg === '-y') {
+      skipConfirmation = true;
+    } else if (arg === '--no-recursive') {
+      recursive = false;
+    }
+  }
+
+  if (widths.length === 0) {
+    console.error('Error: --widths <w1,w2,...> is required for resize-images');
+    process.exit(1);
+  }
+
+  resizeImagesInFolders(sourceFolder, {
+    widths,
+    outputDir: outputFolder,
+    format,
+    quality,
+    deleteOriginals,
+    archiveDir,
+    skipConfirmation,
+    recursive
+  })
+    .then(async (results) => {
+      const successful = results.filter(r => r.success).length;
+      console.log(`✓ Processed ${successful}/${results.length} images`);
+
+      results.forEach(r => {
+        if (r.success) {
+          console.log(`  ✓ ${r.inputPath}`);
+          r.outputPaths?.forEach(out => console.log(`    → ${out}`));
+        } else {
+          console.error(`  ✗ ${r.inputPath}: ${r.error}`);
+        }
+      });
+
+      // Handle originals after showing results
+      if ((deleteOriginals || archiveDir) && !skipConfirmation) {
+        console.log('');
+        const action = deleteOriginals ? 'delete' : 'archive';
+        const confirmed = await askConfirmation(
+          `Do you want to ${action} the original files? (y/n): `
+        );
+
+        if (confirmed) {
+          const updatedResults = await handleResizeOriginalsAfterReview(results, deleteOriginals, archiveDir);
+          console.log('');
+          updatedResults.forEach(r => {
+            if (r.success && r.originalHandled && r.originalHandled !== 'kept') {
+              console.log(`  ✓ ${r.inputPath}: ${r.originalHandled}`);
+            }
+          });
+        } else {
+          console.log('Original files kept.');
+        }
+      } else if (skipConfirmation && (deleteOriginals || archiveDir)) {
+        results.forEach(r => {
+          if (r.success && r.originalHandled && r.originalHandled !== 'kept') {
             console.log(`  Original: ${r.originalHandled}`);
           }
         });

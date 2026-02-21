@@ -3,6 +3,7 @@ export { optimizeSvg, optimizeSvgs, optimizeSvgsInFolders, handleOriginalsAfterR
 export { extractMetadata } from './features/metadata-extractor/metadataExtractor';
 export { findUnusedAssets, handleUnusedAssets } from './features/unused-assets/unusedAssets';
 export { generatePlaceholders } from './features/placeholder-generator/placeholderGenerator';
+export { resizeImagesInFolders } from './features/image-resizer/imageResizer';
 export type {
   ImageConversionOptions,
   ConversionResult,
@@ -15,5 +16,7 @@ export type {
   UnusedAssetsOptions,
   UnusedAssetResult,
   PlaceholderOptions,
-  PlaceholderResult
+  PlaceholderResult,
+  ImageResizerOptions,
+  ResizeResult
 } from './types';
