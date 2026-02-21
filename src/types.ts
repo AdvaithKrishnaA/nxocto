@@ -99,3 +99,20 @@ export interface PlaceholderResult {
   data: Record<string, string>;
   error?: string;
 }
+
+export interface ImageResizerOptions {
+  widths: number[];
+  format?: ImageFormat | 'original';
+  quality?: number;
+  outputDir?: string;
+  deleteOriginals?: boolean;
+  archiveDir?: string;
+}
+
+export interface ResizeResult {
+  success: boolean;
+  inputPath: string;
+  outputPaths?: string[];
+  originalHandled?: 'deleted' | 'archived' | 'kept';
+  error?: string;
+}
