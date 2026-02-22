@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import sharp from 'sharp';
+import { PDFDocument } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -324,6 +325,101 @@ describe('CLI', () => {
       } catch (error: any) {
         expect(error.stderr).toContain('Error: --widths <w1,w2,...> is required');
       }
+    });
+  });
+
+  describe('find-duplicates', () => {
+    const testAssetsDir = path.join(testDir, 'assets_find_duplicates');
+    const testCodeDir = path.join(testDir, 'code_find_duplicates');
+
+    beforeEach(async () => {
+      await fs.mkdir(testAssetsDir, { recursive: true });
+      await fs.mkdir(testCodeDir, { recursive: true });
+
+      const content = 'duplicate content';
+      // copy.txt will be kept (sorted first), orig.txt will be removed
+      await fs.writeFile(path.join(testAssetsDir, 'orig.txt'), content);
+      await fs.writeFile(path.join(testAssetsDir, 'copy.txt'), content);
+      await fs.writeFile(path.join(testAssetsDir, 'unique.txt'), 'unique');
+
+      await fs.writeFile(
+        path.join(testCodeDir, 'App.js'),
+        `const file = "orig.txt";`
+      );
+    });
+
+    it('should find duplicates via CLI', async () => {
+      const { stdout } = await execAsync(
+        `node ${cliPath} find-duplicates ${testAssetsDir}`
+      );
+
+      expect(stdout).toContain('Scanned 3 files');
+      expect(stdout).toContain('Found 1 duplicate(s)');
+      expect(stdout).toContain('orig.txt');
+      expect(stdout).toContain('copy.txt');
+    });
+
+    it('should delete duplicates and update refs via CLI', async () => {
+      const { stdout } = await execAsync(
+        `node ${cliPath} find-duplicates ${testAssetsDir} --refs ${testCodeDir} --delete --yes`
+      );
+
+      expect(stdout).toContain('Deleted 1 duplicate(s)');
+      expect(stdout).toContain('Updated 1 reference(s)');
+
+      // Verify duplicate was deleted
+      await expect(fs.access(path.join(testAssetsDir, 'orig.txt'))).rejects.toThrow();
+
+      // Verify ref updated to the kept file
+      const content = await fs.readFile(path.join(testCodeDir, 'App.js'), 'utf-8');
+      expect(content).toContain('copy.txt');
+    });
+
+    it('should archive duplicates via CLI', async () => {
+      const archiveDir = path.join(testDir, 'dup_archive');
+      await execAsync(
+        `node ${cliPath} find-duplicates ${testAssetsDir} --archive ${archiveDir} --yes`
+      );
+
+      const stats = await fs.stat(path.join(archiveDir, 'orig.txt'));
+      expect(stats.isFile()).toBe(true);
+      await expect(fs.access(path.join(testAssetsDir, 'orig.txt'))).rejects.toThrow();
+    });
+  });
+
+  describe('optimize-pdf', () => {
+    const testPdfsDir = path.join(testDir, 'pdfs_cli');
+
+    beforeEach(async () => {
+      await fs.mkdir(testPdfsDir, { recursive: true });
+      const pdfDoc = await PDFDocument.create();
+      pdfDoc.addPage([100, 100]);
+      const pdfBytes = await pdfDoc.save();
+      await fs.writeFile(path.join(testPdfsDir, 'test.pdf'), pdfBytes);
+    });
+
+    it('should optimize PDFs via CLI', async () => {
+      const { stdout } = await execAsync(
+        `node ${cliPath} optimize-pdf ${testPdfsDir} --output ${testOutputDir}`
+      );
+
+      expect(stdout).toContain('Optimized 1/1 PDFs');
+      expect(stdout).toContain('Total savings');
+
+      const outputFile = path.join(testOutputDir, 'test.pdf');
+      const stats = await fs.stat(outputFile);
+      expect(stats.isFile()).toBe(true);
+    });
+
+    it('should archive originals via CLI', async () => {
+      await execAsync(
+        `node ${cliPath} optimize-pdf ${testPdfsDir} --output ${testOutputDir} --archive ${testArchiveDir} --yes`
+      );
+
+      const archivedFile = path.join(testArchiveDir, 'test.pdf');
+      const stats = await fs.stat(archivedFile);
+      expect(stats.isFile()).toBe(true);
+      await expect(fs.stat(path.join(testPdfsDir, 'test.pdf'))).rejects.toThrow();
     });
   });
 });
