@@ -7,7 +7,7 @@
   "bin": {
     "nxocto": "dist/src/cli.js"
   },
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@10.30.1",
   "scripts": {
     "build": "tsc",
     "test": "pnpm build && jest",
