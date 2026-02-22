@@ -5,6 +5,7 @@ export { findUnusedAssets, handleUnusedAssets } from './features/unused-assets/u
 export { generatePlaceholders } from './features/placeholder-generator/placeholderGenerator';
 export { resizeImagesInFolders } from './features/image-resizer/imageResizer';
 export { optimizePdf, optimizePdfsInFolders, handleOriginalsAfterReview as handlePdfOriginalsAfterReview } from './features/pdf-optimizer/pdfOptimizer';
+export { findDuplicates, handleDuplicates } from './features/duplicate-finder/duplicateFinder';
 export type {
   ImageConversionOptions,
   ConversionResult,
@@ -22,4 +23,7 @@ export type {
   ResizeResult,
   PdfOptimizerOptions,
   PdfOptimizerResult
+  DuplicateOptions,
+  DuplicateGroup,
+  DuplicateResult
 } from './types';

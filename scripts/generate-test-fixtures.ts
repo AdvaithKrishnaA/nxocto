@@ -257,6 +257,18 @@ node dist/cli.js find-unused test-fixtures/images --refs test-fixtures/code --ou
 node dist/cli.js find-unused test-fixtures/images --refs test-fixtures/code --archive test-fixtures/unused-archive --yes
 \`\`\`
 
+### Find Duplicate Assets
+\`\`\`bash
+# Find duplicates
+node dist/cli.js find-duplicates test-fixtures/duplicates
+
+# Delete duplicates and update references
+node dist/cli.js find-duplicates test-fixtures/duplicates --refs test-fixtures/code --delete --yes
+
+# Archive duplicates
+node dist/cli.js find-duplicates test-fixtures/duplicates --archive test-fixtures/duplicates-archive --yes
+\`\`\`
+
 ## Regenerating Fixtures
 
 To regenerate these test fixtures:
@@ -316,6 +328,29 @@ async function generatePdfFixtures() {
   await fs.writeFile(path.join(pdfDir, 'sample.pdf'), pdfBytes);
 
   console.log('  ✓ Generated PDF test fixtures');
+  
+async function generateDuplicateFixtures() {
+  const dupDir = path.join(FIXTURES_DIR, 'duplicates');
+  await fs.mkdir(dupDir, { recursive: true });
+
+  console.log('Generating duplicate test fixtures...');
+
+  const content = 'This is a duplicate file content.';
+  await fs.writeFile(path.join(dupDir, 'file1.txt'), content);
+  await fs.writeFile(path.join(dupDir, 'file1_copy.txt'), content);
+
+  await fs.mkdir(path.join(dupDir, 'nested'), { recursive: true });
+  await fs.writeFile(path.join(dupDir, 'nested', 'file1_nested_copy.txt'), content);
+
+  await fs.writeFile(path.join(dupDir, 'unique.txt'), 'This is a unique file content.');
+
+  // Code with references to duplicates
+  await fs.writeFile(
+    path.join(CODE_DIR, 'Duplicates.js'),
+    `// References to duplicate files\nconst f1 = 'file1_copy.txt';\nconst f2 = 'file1_nested_copy.txt';`
+  );
+
+  console.log('  ✓ Generated duplicate test fixtures');
 }
 
 async function main() {
@@ -328,6 +363,7 @@ async function main() {
     await generateUnusedAssetsFixtures();
     await generateResizeFixtures();
     await generatePdfFixtures();
+    await generateDuplicateFixtures();
     await generateReadme();
 
     console.log('\n✅ Test fixtures ready in test-fixtures/');

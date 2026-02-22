@@ -22,6 +22,11 @@ export interface PdfOptimizerOptions {
   outputDir?: string;
   deleteOriginals?: boolean;
   archiveDir?: string;
+export interface DuplicateOptions {
+  referenceDirs?: string[];
+  deleteDuplicates?: boolean;
+  archiveDir?: string;
+  outputFile?: string;
   recursive?: boolean;
   skipConfirmation?: boolean;
 }
@@ -34,6 +39,21 @@ export interface PdfOptimizerResult {
   error?: string;
   originalSize?: number;
   optimizedSize?: number;
+export interface DuplicateGroup {
+  hash: string;
+  files: string[];
+  size: number;
+}
+
+export interface DuplicateResult {
+  success: boolean;
+  groups: DuplicateGroup[];
+  totalFiles: number;
+  totalDuplicates: number;
+  totalSavings: number;
+  removedCount?: number;
+  referencesUpdated?: number;
+  error?: string;
 }
 
 export interface UnusedAssetsOptions {

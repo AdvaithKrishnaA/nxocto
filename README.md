@@ -58,6 +58,12 @@ Auto-run utilities for Next.js projects with built-in image optimization, refere
 - Batch processing of entire directories
 - Calculate size savings
 - Safety-first original file handling
+### 🔧 Duplicate Asset Finder
+- Find identical files using content hashing
+- Merge duplicates and update code references
+- Recursive scanning of entire directories
+- Calculate potential space savings
+- Archive or delete redundant files
 
 ## Installation
 
@@ -160,6 +166,14 @@ nxocto optimize-pdf ./documents --output ./optimized
 
 # Archive originals
 nxocto optimize-pdf ./docs --archive ./archive --yes
+### Duplicate Asset Finding
+
+```bash
+# Find duplicates
+nxocto find-duplicates ./public/assets
+
+# Merge duplicates and update references
+nxocto find-duplicates ./public/assets --refs ./src --delete --yes
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
@@ -367,6 +381,19 @@ nxocto optimize-pdf <source-folder> [options]
 - `--output <folder>` - Output folder for optimized PDFs
 - `--delete` - Delete original files (prompts for confirmation)
 - `--archive <folder>` - Move original files to archive folder (prompts for confirmation)
+### find-duplicates
+
+Find and clean up duplicate assets.
+
+```bash
+nxocto find-duplicates <source-folder> [options]
+```
+
+**Options:**
+- `--refs <folders>` - Folders to update references in
+- `--delete` - Delete duplicates (keeping one)
+- `--archive <folder>` - Move duplicates to archive
+- `--output-file <file>` - Save results to JSON
 - `--no-recursive` - Disable recursive scanning
 - `--yes, -y` - Skip confirmation prompts
 
@@ -378,6 +405,11 @@ nxocto optimize-pdf ./documents
 
 # Archive originals
 nxocto optimize-pdf ./public/docs --archive ./archive --output ./optimized
+# Basic scan
+nxocto find-duplicates ./public/assets
+
+# Merge duplicates
+nxocto find-duplicates ./public/assets --refs ./src --delete --yes
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`

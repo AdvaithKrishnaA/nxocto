@@ -6,6 +6,7 @@ import { findUnusedAssets, handleUnusedAssets } from './features/unused-assets/u
 import { generatePlaceholders } from './features/placeholder-generator/placeholderGenerator';
 import { resizeImagesInFolders, handleOriginalsAfterReview as handleResizeOriginalsAfterReview } from './features/image-resizer/imageResizer';
 import { optimizePdfsInFolders, handleOriginalsAfterReview as handlePdfOriginalsAfterReview } from './features/pdf-optimizer/pdfOptimizer';
+import { findDuplicates, handleDuplicates } from './features/duplicate-finder/duplicateFinder';
 import { ImageFormat } from './types';
 import * as readline from 'readline';
 import * as path from 'path';
@@ -37,6 +38,7 @@ if (args.length === 0) {
   console.log('  generate-placeholders       Generate blurry base64 placeholders for images');
   console.log('  resize-images               Resize images to specific widths');
   console.log('  optimize-pdf                Optimize PDF files');
+  console.log('  find-duplicates             Find and clean up duplicate assets');
   console.log('');
   console.log('General Options:');
   console.log('  --output <folder>           Output folder for processed files');
@@ -90,6 +92,7 @@ if (args.length === 0) {
   console.log('  nxocto generate-placeholders ./public/images --size 20');
   console.log('  nxocto resize-images ./images --widths 300,600 --output ./resized');
   console.log('  nxocto optimize-pdf ./documents --output ./optimized');
+  console.log('  nxocto find-duplicates ./public/assets --delete --yes');
   process.exit(1);
 }
 
@@ -451,6 +454,7 @@ if (command === 'convert-images') {
       process.exit(1);
     });
 } else if (command === 'optimize-pdf') {
+} else if (command === 'find-duplicates') {
   const sourceFolder = args[1];
 
   if (!sourceFolder) {
@@ -464,6 +468,12 @@ if (command === 'convert-images') {
   let archiveDir: string | undefined;
   let skipConfirmation = false;
   let recursive = true;
+  let referenceDirs: string[] = [];
+  let deleteDuplicates = false;
+  let archiveDir: string | undefined;
+  let outputFile: string | undefined;
+  let recursive = true;
+  let skipConfirmation = false;
 
   for (let i = 2; i < args.length; i++) {
     const arg = args[i];
@@ -542,6 +552,80 @@ if (command === 'convert-images') {
             console.log(`  Original: ${r.originalHandled}`);
           }
         });
+    if (arg === '--refs' && args[i + 1]) {
+      referenceDirs = args[++i].split(',').map(d => d.trim());
+    } else if (arg === '--delete') {
+      deleteDuplicates = true;
+    } else if (arg === '--archive' && args[i + 1]) {
+      archiveDir = args[++i];
+    } else if (arg === '--output-file' && args[i + 1]) {
+      outputFile = args[++i];
+    } else if (arg === '--no-recursive') {
+      recursive = false;
+    } else if (arg === '--yes' || arg === '-y') {
+      skipConfirmation = true;
+    }
+  }
+
+  findDuplicates(sourceFolder, {
+    referenceDirs,
+    deleteDuplicates: skipConfirmation ? deleteDuplicates : false,
+    archiveDir: skipConfirmation ? archiveDir : undefined,
+    outputFile,
+    recursive,
+    skipConfirmation
+  })
+    .then(async (result) => {
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to find duplicates');
+      }
+
+      console.log(`✓ Scanned ${result.totalFiles} files`);
+      console.log(`✓ Found ${result.totalDuplicates} duplicate(s) across ${result.groups.length} group(s)`);
+      console.log(`✓ Potential savings: ${(result.totalSavings / 1024).toFixed(1)} KB`);
+
+      if (result.groups.length > 0) {
+        result.groups.forEach((group, index) => {
+          console.log(`\nGroup ${index + 1} (Hash: ${group.hash.substring(0, 8)}..., Size: ${(group.size / 1024).toFixed(1)} KB):`);
+          group.files.forEach((file, fIndex) => {
+            console.log(`  ${fIndex === 0 ? 'KEEP' : 'DUP '} ${file}`);
+          });
+        });
+
+        // Handle destructive actions after review
+        if ((deleteDuplicates || archiveDir) && !skipConfirmation) {
+          console.log('');
+          const action = deleteDuplicates ? 'delete' : 'archive';
+          const confirmed = await askConfirmation(
+            `Do you want to ${action} the duplicate files and update references? (y/n): `
+          );
+
+          if (confirmed) {
+            const handleResult = await handleDuplicates(result.groups, {
+              deleteDuplicates,
+              archiveDir,
+              referenceDirs
+            });
+
+            if (handleResult.removedCount > 0) {
+              const verb = deleteDuplicates ? 'Deleted' : 'Archived';
+              console.log(`✓ ${verb} ${handleResult.removedCount} duplicate(s)`);
+              if (handleResult.referencesUpdated > 0) {
+                console.log(`✓ Updated ${handleResult.referencesUpdated} reference(s)`);
+              }
+            }
+          } else {
+            console.log('Duplicates kept.');
+          }
+        } else if (skipConfirmation && (deleteDuplicates || archiveDir)) {
+          if (result.removedCount) {
+            const verb = deleteDuplicates ? 'Deleted' : 'Archived';
+            console.log(`✓ ${verb} ${result.removedCount} duplicate(s)`);
+            if (result.referencesUpdated) {
+              console.log(`✓ Updated ${result.referencesUpdated} reference(s)`);
+            }
+          }
+        }
       }
     })
     .catch(err => {
