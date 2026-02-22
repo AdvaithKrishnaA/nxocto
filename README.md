@@ -52,6 +52,13 @@ Auto-run utilities for Next.js projects with built-in image optimization, refere
 - Format conversion (WebP, AVIF)
 - Safety-first original file handling
 
+### 🔧 PDF Optimizer
+- Optimize PDF files using pdf-lib
+- Remove unused objects and restructure
+- Batch processing of entire directories
+- Calculate size savings
+- Safety-first original file handling
+
 ## Installation
 
 Clone the repository and install dependencies:
@@ -143,6 +150,16 @@ nxocto resize-images ./images --widths 300,600 --output ./resized
 
 # Resize and convert to WebP
 nxocto resize-images ./images --widths 800 --format webp --output ./optimized
+```
+
+### PDF Optimization
+
+```bash
+# Basic optimization
+nxocto optimize-pdf ./documents --output ./optimized
+
+# Archive originals
+nxocto optimize-pdf ./docs --archive ./archive --yes
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
@@ -336,6 +353,31 @@ nxocto resize-images ./images --widths 300,600 --output ./resized
 
 # With format conversion
 nxocto resize-images ./images --widths 800 --format webp --output ./optimized
+```
+
+### optimize-pdf
+
+Optimize PDF files for smaller size.
+
+```bash
+nxocto optimize-pdf <source-folder> [options]
+```
+
+**Options:**
+- `--output <folder>` - Output folder for optimized PDFs
+- `--delete` - Delete original files (prompts for confirmation)
+- `--archive <folder>` - Move original files to archive folder (prompts for confirmation)
+- `--no-recursive` - Disable recursive scanning
+- `--yes, -y` - Skip confirmation prompts
+
+**Examples:**
+
+```bash
+# Basic optimization
+nxocto optimize-pdf ./documents
+
+# Archive originals
+nxocto optimize-pdf ./public/docs --archive ./archive --output ./optimized
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`

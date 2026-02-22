@@ -18,6 +18,24 @@ export interface ConversionResult {
   error?: string;
 }
 
+export interface PdfOptimizerOptions {
+  outputDir?: string;
+  deleteOriginals?: boolean;
+  archiveDir?: string;
+  recursive?: boolean;
+  skipConfirmation?: boolean;
+}
+
+export interface PdfOptimizerResult {
+  success: boolean;
+  inputPath: string;
+  outputPath?: string;
+  originalHandled?: 'deleted' | 'archived' | 'kept';
+  error?: string;
+  originalSize?: number;
+  optimizedSize?: number;
+}
+
 export interface UnusedAssetsOptions {
   referenceDirs: string[];
   deleteUnused?: boolean;

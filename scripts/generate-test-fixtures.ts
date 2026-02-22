@@ -1,5 +1,6 @@
 #!/usr/bin/env ts-node
 import sharp from 'sharp';
+import { PDFDocument } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -302,6 +303,21 @@ async function generateResizeFixtures() {
   console.log('  ✓ Generated 2 resize test images');
 }
 
+async function generatePdfFixtures() {
+  const pdfDir = path.join(FIXTURES_DIR, 'pdfs');
+  await fs.mkdir(pdfDir, { recursive: true });
+
+  console.log('Generating PDF test fixtures...');
+
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([600, 400]);
+  page.drawText('NxOcto PDF Optimization Test', { x: 50, y: 350 });
+  const pdfBytes = await pdfDoc.save();
+  await fs.writeFile(path.join(pdfDir, 'sample.pdf'), pdfBytes);
+
+  console.log('  ✓ Generated PDF test fixtures');
+}
+
 async function main() {
   console.log('🔧 Generating test fixtures for manual testing...\n');
 
@@ -311,6 +327,7 @@ async function main() {
     await generateTestCode();
     await generateUnusedAssetsFixtures();
     await generateResizeFixtures();
+    await generatePdfFixtures();
     await generateReadme();
 
     console.log('\n✅ Test fixtures ready in test-fixtures/');
