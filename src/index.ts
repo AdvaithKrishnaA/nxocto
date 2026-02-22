@@ -26,4 +26,5 @@ export type {
   DuplicateResult,
   PdfOptimizerOptions,
   PdfOptimizerResult
+  DuplicateResult
 } from './types';
