@@ -4,6 +4,7 @@ export { extractMetadata } from './features/metadata-extractor/metadataExtractor
 export { findUnusedAssets, handleUnusedAssets } from './features/unused-assets/unusedAssets';
 export { generatePlaceholders } from './features/placeholder-generator/placeholderGenerator';
 export { resizeImagesInFolders } from './features/image-resizer/imageResizer';
+export { findDuplicates, handleDuplicates } from './features/duplicate-finder/duplicateFinder';
 export type {
   ImageConversionOptions,
   ConversionResult,
@@ -18,5 +19,8 @@ export type {
   PlaceholderOptions,
   PlaceholderResult,
   ImageResizerOptions,
-  ResizeResult
+  ResizeResult,
+  DuplicateOptions,
+  DuplicateGroup,
+  DuplicateResult
 } from './types';

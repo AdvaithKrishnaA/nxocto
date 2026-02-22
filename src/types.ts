@@ -18,6 +18,32 @@ export interface ConversionResult {
   error?: string;
 }
 
+export interface DuplicateOptions {
+  referenceDirs?: string[];
+  deleteDuplicates?: boolean;
+  archiveDir?: string;
+  outputFile?: string;
+  recursive?: boolean;
+  skipConfirmation?: boolean;
+}
+
+export interface DuplicateGroup {
+  hash: string;
+  files: string[];
+  size: number;
+}
+
+export interface DuplicateResult {
+  success: boolean;
+  groups: DuplicateGroup[];
+  totalFiles: number;
+  totalDuplicates: number;
+  totalSavings: number;
+  removedCount?: number;
+  referencesUpdated?: number;
+  error?: string;
+}
+
 export interface UnusedAssetsOptions {
   referenceDirs: string[];
   deleteUnused?: boolean;

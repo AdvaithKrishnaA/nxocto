@@ -52,6 +52,13 @@ Auto-run utilities for Next.js projects with built-in image optimization, refere
 - Format conversion (WebP, AVIF)
 - Safety-first original file handling
 
+### 🔧 Duplicate Asset Finder
+- Find identical files using content hashing
+- Merge duplicates and update code references
+- Recursive scanning of entire directories
+- Calculate potential space savings
+- Archive or delete redundant files
+
 ## Installation
 
 Clone the repository and install dependencies:
@@ -143,6 +150,16 @@ nxocto resize-images ./images --widths 300,600 --output ./resized
 
 # Resize and convert to WebP
 nxocto resize-images ./images --widths 800 --format webp --output ./optimized
+```
+
+### Duplicate Asset Finding
+
+```bash
+# Find duplicates
+nxocto find-duplicates ./public/assets
+
+# Merge duplicates and update references
+nxocto find-duplicates ./public/assets --refs ./src --delete --yes
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
@@ -336,6 +353,32 @@ nxocto resize-images ./images --widths 300,600 --output ./resized
 
 # With format conversion
 nxocto resize-images ./images --widths 800 --format webp --output ./optimized
+```
+
+### find-duplicates
+
+Find and clean up duplicate assets.
+
+```bash
+nxocto find-duplicates <source-folder> [options]
+```
+
+**Options:**
+- `--refs <folders>` - Folders to update references in
+- `--delete` - Delete duplicates (keeping one)
+- `--archive <folder>` - Move duplicates to archive
+- `--output-file <file>` - Save results to JSON
+- `--no-recursive` - Disable recursive scanning
+- `--yes, -y` - Skip confirmation prompts
+
+**Examples:**
+
+```bash
+# Basic scan
+nxocto find-duplicates ./public/assets
+
+# Merge duplicates
+nxocto find-duplicates ./public/assets --refs ./src --delete --yes
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
