@@ -562,15 +562,6 @@ This project is designed for AI-assisted development:
 
 Want to contribute? Check out `CONTRIBUTING.md` for guidelines on adding new features.
 
-## Roadmap
-
-Future features planned:
-- PDF optimization
-- SVG minification
-- Font subsetting
-- Asset bundling
-- And more...
-
 ## License
 
 MIT
