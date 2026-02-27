@@ -385,4 +385,48 @@ describe('CLI', () => {
       await expect(fs.access(path.join(testAssetsDir, 'orig.txt'))).rejects.toThrow();
     });
   });
+
+  describe('optimize-pdf', () => {
+    const testPdfsDir = path.join(testDir, 'pdfs');
+
+    beforeEach(async () => {
+      await fs.mkdir(testPdfsDir, { recursive: true });
+      const pdfDoc = await (await import('pdf-lib')).PDFDocument.create();
+      pdfDoc.addPage([400, 400]);
+      pdfDoc.setTitle('CLI Test PDF');
+      const pdfBytes = await pdfDoc.save();
+      await fs.writeFile(path.join(testPdfsDir, 'test.pdf'), pdfBytes);
+    });
+
+    it('should optimize PDFs via CLI', async () => {
+      const { stdout } = await execAsync(
+        `node ${cliPath} optimize-pdf ${testPdfsDir} --output ${testOutputDir}`
+      );
+
+      expect(stdout).toContain('Optimized 1/1 PDFs');
+      expect(stdout).toContain('Total savings');
+
+      // Verify output file exists
+      const outputFile = path.join(testOutputDir, 'test.pdf');
+      const stats = await fs.stat(outputFile);
+      expect(stats.isFile()).toBe(true);
+
+      // Verify metadata cleared
+      const optimizedPdfBytes = await fs.readFile(outputFile);
+      const optimizedPdf = await (await import('pdf-lib')).PDFDocument.load(optimizedPdfBytes);
+      const title = optimizedPdf.getTitle();
+      expect(title === undefined || title === '').toBe(true);
+    });
+
+    it('should archive originals via CLI', async () => {
+      await execAsync(
+        `node ${cliPath} optimize-pdf ${testPdfsDir} --output ${testOutputDir} --archive ${testArchiveDir} --yes`
+      );
+
+      // Verify original is archived
+      const archivedFile = path.join(testArchiveDir, 'test.pdf');
+      const stats = await fs.stat(archivedFile);
+      expect(stats.isFile()).toBe(true);
+    });
+  });
 });

@@ -6,6 +6,7 @@ import { findUnusedAssets, handleUnusedAssets } from './features/unused-assets/u
 import { generatePlaceholders } from './features/placeholder-generator/placeholderGenerator';
 import { resizeImagesInFolders, handleOriginalsAfterReview as handleResizeOriginalsAfterReview } from './features/image-resizer/imageResizer';
 import { findDuplicates, handleDuplicates } from './features/duplicate-finder/duplicateFinder';
+import { optimizePdfsInFolders, handleOriginalsAfterReview as handlePdfOriginalsAfterReview } from './features/pdf-optimizer/pdfOptimizer';
 import { ImageFormat } from './types';
 import * as readline from 'readline';
 import * as path from 'path';
@@ -37,6 +38,7 @@ if (args.length === 0) {
   console.log('  generate-placeholders       Generate blurry base64 placeholders for images');
   console.log('  resize-images               Resize images to specific widths');
   console.log('  find-duplicates             Find and clean up duplicate assets');
+  console.log('  optimize-pdf                Optimize PDF files');
   console.log('');
   console.log('General Options:');
   console.log('  --output <folder>           Output folder for processed files');
@@ -90,6 +92,7 @@ if (args.length === 0) {
   console.log('  nxocto generate-placeholders ./public/images --size 20');
   console.log('  nxocto resize-images ./images --widths 300,600 --output ./resized');
   console.log('  nxocto find-duplicates ./public/assets --delete --yes');
+  console.log('  nxocto optimize-pdf ./documents --output ./optimized');
   process.exit(1);
 }
 
@@ -174,6 +177,100 @@ if (command === 'convert-images') {
         // Already handled in convertImagesInFolders
         results.forEach(r => {
           if (r.success && r.originalHandled) {
+            console.log(`  Original: ${r.originalHandled}`);
+          }
+        });
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err.message);
+      process.exit(1);
+    });
+} else if (command === 'optimize-pdf') {
+  const sourceFolder = args[1];
+
+  if (!sourceFolder) {
+    console.error('Error: Source folder is required');
+    process.exit(1);
+  }
+
+  // Parse options
+  let outputFolder: string | undefined;
+  let deleteOriginals = false;
+  let archiveDir: string | undefined;
+  let skipConfirmation = false;
+
+  for (let i = 2; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg === '--output' && args[i + 1]) {
+      outputFolder = args[++i];
+    } else if (arg === '--delete') {
+      deleteOriginals = true;
+    } else if (arg === '--archive' && args[i + 1]) {
+      archiveDir = args[++i];
+    } else if (arg === '--yes' || arg === '-y') {
+      skipConfirmation = true;
+    }
+  }
+
+  optimizePdfsInFolders(sourceFolder, {
+    outputDir: outputFolder,
+    deleteOriginals,
+    archiveDir,
+    skipConfirmation
+  })
+    .then(async (results) => {
+      const successful = results.filter(r => r.success).length;
+      console.log(`✓ Optimized ${successful}/${results.length} PDFs`);
+
+      let totalOriginal = 0;
+      let totalOptimized = 0;
+
+      results.forEach(r => {
+        if (r.success) {
+          totalOriginal += r.originalSize || 0;
+          totalOptimized += r.optimizedSize || 0;
+          const saving = r.originalSize && r.optimizedSize
+            ? ((r.originalSize - r.optimizedSize) / r.originalSize * 100).toFixed(1)
+            : 0;
+
+          console.log(`  ✓ ${r.inputPath} (${saving}% saved)`);
+        } else {
+          console.error(`  ✗ ${r.inputPath}: ${r.error}`);
+        }
+      });
+
+      if (totalOriginal > 0) {
+        const totalSaving = ((totalOriginal - totalOptimized) / totalOriginal * 100).toFixed(1);
+        console.log(`\nTotal savings: ${totalSaving}% (${(totalOriginal/1024).toFixed(1)}KB → ${(totalOptimized/1024).toFixed(1)}KB)`);
+      }
+
+      // Handle originals after showing results
+      const needsAction = (deleteOriginals || archiveDir) &&
+        results.some(r => r.success && r.inputPath && r.outputPath && path.resolve(r.inputPath) !== path.resolve(r.outputPath));
+
+      if (needsAction && !skipConfirmation) {
+        console.log('');
+        const action = deleteOriginals ? 'delete' : 'archive';
+        const confirmed = await askConfirmation(
+          `Do you want to ${action} the original files? (y/n): `
+        );
+
+        if (confirmed) {
+          const updatedResults = await handlePdfOriginalsAfterReview(results, deleteOriginals, archiveDir);
+          console.log('');
+          updatedResults.forEach(r => {
+            if (r.success && r.originalHandled && r.originalHandled !== 'kept') {
+              console.log(`  ✓ ${r.inputPath}: ${r.originalHandled}`);
+            }
+          });
+        } else {
+          console.log('Original files kept.');
+        }
+      } else if (skipConfirmation && (deleteOriginals || archiveDir)) {
+        results.forEach(r => {
+          if (r.success && r.originalHandled && r.originalHandled !== 'kept') {
             console.log(`  Original: ${r.originalHandled}`);
           }
         });

@@ -59,6 +59,13 @@ Auto-run utilities for Next.js projects with built-in image optimization, refere
 - Calculate potential space savings
 - Archive or delete redundant files
 
+### 🔧 PDF Optimizer
+- Optimize PDF files by removing metadata
+- Compress object streams for smaller file size
+- Batch processing of entire directories
+- Safety-first original file handling
+- Archive or delete originals automatically
+
 ## Installation
 
 Clone the repository and install dependencies:
@@ -160,6 +167,16 @@ nxocto find-duplicates ./public/assets
 
 # Merge duplicates and update references
 nxocto find-duplicates ./public/assets --refs ./src --delete --yes
+```
+
+### PDF Optimization
+
+```bash
+# Basic optimization
+nxocto optimize-pdf ./documents
+
+# With output folder and archiving
+nxocto optimize-pdf ./documents --output ./optimized --archive ./archive --yes
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
@@ -381,6 +398,30 @@ nxocto find-duplicates ./public/assets
 nxocto find-duplicates ./public/assets --refs ./src --delete --yes
 ```
 
+### optimize-pdf
+
+Optimize PDF files for smaller size.
+
+```bash
+nxocto optimize-pdf <source-folder> [options]
+```
+
+**Options:**
+- `--output <folder>` - Output folder for optimized PDFs
+- `--delete` - Delete original files after optimization (prompts for confirmation)
+- `--archive <folder>` - Move original files to archive folder (prompts for confirmation)
+- `--yes, -y` - Skip confirmation prompts (for automation)
+
+**Examples:**
+
+```bash
+# Basic optimization
+nxocto optimize-pdf ./documents
+
+# With archive and skip confirmation
+nxocto optimize-pdf ./documents --archive ./archive --yes
+```
+
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
 
 ## Programmatic Usage
@@ -520,15 +561,6 @@ This project is designed for AI-assisted development:
 - **Comprehensive testing** - Automated tests for all functionality
 
 Want to contribute? Check out `CONTRIBUTING.md` for guidelines on adding new features.
-
-## Roadmap
-
-Future features planned:
-- PDF optimization
-- SVG minification
-- Font subsetting
-- Asset bundling
-- And more...
 
 ## License
 
