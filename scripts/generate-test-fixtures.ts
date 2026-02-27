@@ -2,6 +2,7 @@
 import sharp from 'sharp';
 import fs from 'fs/promises';
 import path from 'path';
+import { PDFDocument } from 'pdf-lib';
 
 const FIXTURES_DIR = path.join(process.cwd(), 'test-fixtures');
 const IMAGES_DIR = path.join(FIXTURES_DIR, 'images');
@@ -79,6 +80,25 @@ async function generateTestSvgs() {
   await fs.writeFile(path.join(IMAGES_DIR, 'illustration.svg'), illustrationSvg);
 
   console.log('  ✓ Generated 2 test SVGs');
+}
+
+async function generateTestPdfs() {
+  const pdfDir = path.join(FIXTURES_DIR, 'pdfs');
+  await fs.mkdir(pdfDir, { recursive: true });
+
+  console.log('Generating test PDFs...');
+
+  // Create a sample PDF
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([600, 800]);
+  page.drawText('Sample PDF for NxOcto testing', { x: 50, y: 750 });
+  pdfDoc.setTitle('Sample PDF');
+  pdfDoc.setAuthor('NxOcto');
+
+  const pdfBytes = await pdfDoc.save();
+  await fs.writeFile(path.join(pdfDir, 'sample.pdf'), pdfBytes);
+
+  console.log('  ✓ Generated 1 test PDF');
 }
 
 async function generateTestCode() {
@@ -268,6 +288,15 @@ node dist/cli.js find-duplicates test-fixtures/duplicates --refs test-fixtures/c
 node dist/cli.js find-duplicates test-fixtures/duplicates --archive test-fixtures/duplicates-archive --yes
 \`\`\`
 
+### PDF Optimization
+\`\`\`bash
+# Basic optimization
+node dist/cli.js optimize-pdf test-fixtures/pdfs --output test-fixtures/output
+
+# With archive
+node dist/cli.js optimize-pdf test-fixtures/pdfs --output test-fixtures/output --archive test-fixtures/archive --yes
+\`\`\`
+
 ## Regenerating Fixtures
 
 To regenerate these test fixtures:
@@ -348,6 +377,7 @@ async function main() {
     await generateUnusedAssetsFixtures();
     await generateResizeFixtures();
     await generateDuplicateFixtures();
+    await generateTestPdfs();
     await generateReadme();
 
     console.log('\n✅ Test fixtures ready in test-fixtures/');
