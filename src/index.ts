@@ -6,6 +6,7 @@ export { generatePlaceholders } from './features/placeholder-generator/placehold
 export { resizeImagesInFolders } from './features/image-resizer/imageResizer';
 export { findDuplicates, handleDuplicates } from './features/duplicate-finder/duplicateFinder';
 export { optimizePdfsInFolders, handleOriginalsAfterReview as handlePdfOriginalsAfterReview } from './features/pdf-optimizer/pdfOptimizer';
+export { svgToComponent, svgToComponentsInFolder, generateIndexFile } from './features/svg-to-component/svgToComponent';
 export type {
   ImageConversionOptions,
   ConversionResult,
@@ -25,5 +26,7 @@ export type {
   DuplicateGroup,
   DuplicateResult,
   PdfOptimizerOptions,
-  PdfOptimizerResult
+  PdfOptimizerResult,
+  SvgToComponentOptions,
+  SvgToComponentResult
 } from './types';

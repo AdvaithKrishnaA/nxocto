@@ -429,4 +429,56 @@ describe('CLI', () => {
       expect(stats.isFile()).toBe(true);
     });
   });
+
+  describe('svg-to-component', () => {
+    const testSvgsDir = path.join(testDir, 'svgs_to_comp');
+
+    beforeEach(async () => {
+      await fs.mkdir(testSvgsDir, { recursive: true });
+      await fs.writeFile(
+        path.join(testSvgsDir, 'icon.svg'),
+        `<svg width="100" height="100"><circle cx="50" cy="50" r="40" /></svg>`
+      );
+    });
+
+    it('should convert SVGs to components via CLI', async () => {
+      const { stdout } = await execAsync(
+        `node ${cliPath} svg-to-component ${testSvgsDir} --output ${testOutputDir} --typescript`
+      );
+
+      expect(stdout).toContain('Converted 1/1 SVGs to React components');
+      expect(stdout).toContain('Icon.tsx');
+
+      // Verify component file exists
+      const outputFile = path.join(testOutputDir, 'Icon.tsx');
+      const stats = await fs.stat(outputFile);
+      expect(stats.isFile()).toBe(true);
+
+      const content = await fs.readFile(outputFile, 'utf-8');
+      expect(content).toContain('export default Icon');
+    });
+
+    it('should generate index file via CLI', async () => {
+      await execAsync(
+        `node ${cliPath} svg-to-component ${testSvgsDir} --output ${testOutputDir}`
+      );
+
+      const indexFile = path.join(testOutputDir, 'index.ts');
+      const stats = await fs.stat(indexFile);
+      expect(stats.isFile()).toBe(true);
+
+      const content = await fs.readFile(indexFile, 'utf-8');
+      expect(content).toContain("export { default as Icon } from './Icon'");
+    });
+
+    it('should respect prefix and suffix via CLI', async () => {
+      await execAsync(
+        `node ${cliPath} svg-to-component ${testSvgsDir} --output ${testOutputDir} --prefix My --suffix Icon`
+      );
+
+      const outputFile = path.join(testOutputDir, 'MyIconIcon.tsx');
+      const stats = await fs.stat(outputFile);
+      expect(stats.isFile()).toBe(true);
+    });
+  });
 });

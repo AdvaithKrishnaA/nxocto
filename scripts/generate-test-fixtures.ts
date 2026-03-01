@@ -101,6 +101,21 @@ async function generateTestPdfs() {
   console.log('  ✓ Generated 1 test PDF');
 }
 
+async function generateSvgToComponentFixtures() {
+  const sourceDir = path.join(FIXTURES_DIR, 'svg-icons');
+  await fs.mkdir(sourceDir, { recursive: true });
+
+  console.log('Generating SVG to component test fixtures...');
+
+  const homeSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+  const settingsSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`;
+
+  await fs.writeFile(path.join(sourceDir, 'home.svg'), homeSvg);
+  await fs.writeFile(path.join(sourceDir, 'settings.svg'), settingsSvg);
+
+  console.log('  ✓ Generated 2 test icons for component conversion');
+}
+
 async function generateTestCode() {
   await fs.mkdir(CODE_DIR, { recursive: true });
 
@@ -297,6 +312,15 @@ node dist/cli.js optimize-pdf test-fixtures/pdfs --output test-fixtures/output
 node dist/cli.js optimize-pdf test-fixtures/pdfs --output test-fixtures/output --archive test-fixtures/archive --yes
 \`\`\`
 
+### SVG to React Component Conversion
+\`\`\`bash
+# Basic conversion to TypeScript components
+node dist/cli.js svg-to-component test-fixtures/svg-icons --output test-fixtures/components
+
+# Conversion with prefix and index file
+node dist/cli.js svg-to-component test-fixtures/svg-icons --output test-fixtures/components --prefix Icon --typescript
+\`\`\`
+
 ## Regenerating Fixtures
 
 To regenerate these test fixtures:
@@ -378,6 +402,7 @@ async function main() {
     await generateResizeFixtures();
     await generateDuplicateFixtures();
     await generateTestPdfs();
+    await generateSvgToComponentFixtures();
     await generateReadme();
 
     console.log('\n✅ Test fixtures ready in test-fixtures/');

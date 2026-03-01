@@ -7,6 +7,7 @@ import { generatePlaceholders } from './features/placeholder-generator/placehold
 import { resizeImagesInFolders, handleOriginalsAfterReview as handleResizeOriginalsAfterReview } from './features/image-resizer/imageResizer';
 import { findDuplicates, handleDuplicates } from './features/duplicate-finder/duplicateFinder';
 import { optimizePdfsInFolders, handleOriginalsAfterReview as handlePdfOriginalsAfterReview } from './features/pdf-optimizer/pdfOptimizer';
+import { svgToComponentsInFolder } from './features/svg-to-component/svgToComponent';
 import { ImageFormat } from './types';
 import * as readline from 'readline';
 import * as path from 'path';
@@ -39,6 +40,7 @@ if (args.length === 0) {
   console.log('  resize-images               Resize images to specific widths');
   console.log('  find-duplicates             Find and clean up duplicate assets');
   console.log('  optimize-pdf                Optimize PDF files');
+  console.log('  svg-to-component            Convert SVG files to React components');
   console.log('');
   console.log('General Options:');
   console.log('  --output <folder>           Output folder for processed files');
@@ -93,6 +95,7 @@ if (args.length === 0) {
   console.log('  nxocto resize-images ./images --widths 300,600 --output ./resized');
   console.log('  nxocto find-duplicates ./public/assets --delete --yes');
   console.log('  nxocto optimize-pdf ./documents --output ./optimized');
+  console.log('  nxocto svg-to-component ./icons --output ./components/icons --typescript');
   process.exit(1);
 }
 
@@ -640,6 +643,70 @@ if (command === 'convert-images') {
             }
           }
         }
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err.message);
+      process.exit(1);
+    });
+} else if (command === 'svg-to-component') {
+  const sourceFolder = args[1];
+
+  if (!sourceFolder) {
+    console.error('Error: Source folder is required');
+    process.exit(1);
+  }
+
+  // Parse options
+  let outputFolder = './components/icons';
+  let typescript = true;
+  let prefix = '';
+  let suffix = '';
+  let generateIndex = true;
+  let removeDimensions = true;
+
+  for (let i = 2; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg === '--output' && args[i + 1]) {
+      outputFolder = args[++i];
+    } else if (arg === '--typescript') {
+      typescript = true;
+    } else if (arg === '--javascript') {
+      typescript = false;
+    } else if (arg === '--prefix' && args[i + 1]) {
+      prefix = args[++i];
+    } else if (arg === '--suffix' && args[i + 1]) {
+      suffix = args[++i];
+    } else if (arg === '--no-index') {
+      generateIndex = false;
+    } else if (arg === '--no-dimensions') {
+      removeDimensions = false;
+    }
+  }
+
+  svgToComponentsInFolder(sourceFolder, {
+    outputDir: outputFolder,
+    typescript,
+    prefix,
+    suffix,
+    generateIndex,
+    removeDimensions
+  })
+    .then(results => {
+      const successful = results.filter(r => r.success).length;
+      console.log(`✓ Converted ${successful}/${results.length} SVGs to React components`);
+
+      results.forEach(r => {
+        if (r.success) {
+          console.log(`  ✓ ${r.inputPath} → ${r.outputPath} (${r.componentName})`);
+        } else {
+          console.error(`  ✗ ${r.inputPath}: ${r.error}`);
+        }
+      });
+
+      if (generateIndex && successful > 0) {
+        console.log(`✓ Generated index file in ${outputFolder}`);
       }
     })
     .catch(err => {

@@ -66,6 +66,13 @@ Auto-run utilities for Next.js projects with built-in image optimization, refere
 - Safety-first original file handling
 - Archive or delete originals automatically
 
+### 🔧 SVG to React Component Converter
+- Convert SVG icons to optimized React components (TSX/JSX)
+- Automatically transforms attributes to camelCase for JSX compatibility
+- Supports prefix/suffix naming and barrel file generation
+- Option to remove dimensions for CSS-based sizing
+- Integrated SVGO optimization
+
 ## Installation
 
 Clone the repository and install dependencies:
@@ -177,6 +184,16 @@ nxocto optimize-pdf ./documents
 
 # With output folder and archiving
 nxocto optimize-pdf ./documents --output ./optimized --archive ./archive --yes
+```
+
+### SVG to React Component Conversion
+
+```bash
+# Basic conversion to TypeScript components
+nxocto svg-to-component ./icons --output ./components/icons
+
+# Conversion with prefix and index file
+nxocto svg-to-component ./icons --output ./components --prefix Icon --typescript
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
@@ -422,6 +439,36 @@ nxocto optimize-pdf ./documents
 nxocto optimize-pdf ./documents --archive ./archive --yes
 ```
 
+### svg-to-component
+
+Convert SVG icons into optimized React components (TSX/JSX).
+
+```bash
+nxocto svg-to-component <source-folder> [options]
+```
+
+**Options:**
+- `--output <folder>` - Output directory for generated components (default: ./components/icons)
+- `--typescript` - Generate TypeScript (.tsx) components (default)
+- `--javascript` - Generate JavaScript (.jsx) components
+- `--prefix <string>` - String to prepend to component names
+- `--suffix <string>` - String to append to component names
+- `--no-index` - Disable barrel file (index.ts/js) generation
+- `--no-dimensions` - Keep width/height in SVG root
+
+**Examples:**
+
+```bash
+# Basic conversion to TypeScript
+nxocto svg-to-component ./icons --output ./components/icons
+
+# Conversion with prefix and suffix
+nxocto svg-to-component ./icons --output ./components --prefix My --suffix Icon
+
+# Generate JavaScript components
+nxocto svg-to-component ./icons --output ./components --javascript
+```
+
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
 
 ## Programmatic Usage
@@ -484,6 +531,17 @@ const resizeResults = await resizeImagesInFolders('./public/images', {
 });
 
 console.log(`✓ Processed ${resizeResults.length} images`);
+
+import { svgToComponentsInFolder } from 'nxocto';
+
+// Convert SVGs to React components
+const compResults = await svgToComponentsInFolder('./icons', {
+  outputDir: './components/icons',
+  prefix: 'Icon',
+  typescript: true
+});
+
+console.log(`✓ Created ${compResults.length} components`);
 ```
 
 ## Development

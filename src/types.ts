@@ -18,6 +18,24 @@ export interface ConversionResult {
   error?: string;
 }
 
+export interface SvgToComponentOptions {
+  outputDir?: string;
+  typescript?: boolean;
+  prefix?: string;
+  suffix?: string;
+  generateIndex?: boolean;
+  removeDimensions?: boolean;
+  skipConfirmation?: boolean;
+}
+
+export interface SvgToComponentResult {
+  success: boolean;
+  inputPath: string;
+  outputPath?: string;
+  componentName?: string;
+  error?: string;
+}
+
 export interface PdfOptimizerOptions {
   outputDir?: string;
   deleteOriginals?: boolean;
