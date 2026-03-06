@@ -7,6 +7,7 @@ export { resizeImagesInFolders } from './features/image-resizer/imageResizer';
 export { findDuplicates, handleDuplicates } from './features/duplicate-finder/duplicateFinder';
 export { optimizePdfsInFolders, handleOriginalsAfterReview as handlePdfOriginalsAfterReview } from './features/pdf-optimizer/pdfOptimizer';
 export { svgToComponent, svgToComponentsInFolder, generateIndexFile } from './features/svg-to-component/svgToComponent';
+export { generateFavicons } from './features/favicon-generator/faviconGenerator';
 export type {
   ImageConversionOptions,
   ConversionResult,
@@ -28,5 +29,7 @@ export type {
   PdfOptimizerOptions,
   PdfOptimizerResult,
   SvgToComponentOptions,
-  SvgToComponentResult
+  SvgToComponentResult,
+  FaviconOptions,
+  FaviconResult
 } from './types';
