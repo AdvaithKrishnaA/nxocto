@@ -333,6 +333,26 @@ pnpm generate-fixtures
   console.log('  ✓ Generated README with usage instructions');
 }
 
+async function generateFaviconFixtures() {
+  const faviconDir = path.join(FIXTURES_DIR, 'favicons');
+  await fs.mkdir(faviconDir, { recursive: true });
+
+  console.log('Generating favicon test fixtures...');
+
+  await sharp({
+    create: {
+      width: 1024,
+      height: 1024,
+      channels: 4,
+      background: { r: 0, g: 122, b: 255, alpha: 1 }
+    }
+  })
+    .png()
+    .toFile(path.join(faviconDir, 'source-icon.png'));
+
+  console.log('  ✓ Generated favicon test source image');
+}
+
 async function generateUnusedAssetsFixtures() {
   console.log('Generating unused assets fixtures...');
 
@@ -403,6 +423,7 @@ async function main() {
     await generateDuplicateFixtures();
     await generateTestPdfs();
     await generateSvgToComponentFixtures();
+    await generateFaviconFixtures();
     await generateReadme();
 
     console.log('\n✅ Test fixtures ready in test-fixtures/');

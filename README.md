@@ -73,6 +73,13 @@ Auto-run utilities for Next.js projects with built-in image optimization, refere
 - Option to remove dimensions for CSS-based sizing
 - Integrated SVGO optimization
 
+### 🔧 Favicon Generator
+- Generate a complete set of favicons from a single source image (PNG/SVG)
+- Creates multi-resolution `favicon.ico`
+- Generates `icon.png` and `apple-icon.png` for Next.js App Router
+- Automatic resizing to standard sizes (16, 32, 48, 180, 192, 512)
+- Optional `site.webmanifest` generation
+
 ## Installation
 
 Clone the repository and install dependencies:
@@ -194,6 +201,32 @@ nxocto svg-to-component ./icons --output ./components/icons
 
 # Conversion with prefix and index file
 nxocto svg-to-component ./icons --output ./components --prefix Icon --typescript
+```
+
+### generate-favicons
+
+Generate a complete set of favicons from a single high-resolution source image.
+
+```bash
+nxocto generate-favicons <source-file> [options]
+```
+
+**Options:**
+- `--output <folder>` - Output folder for generated favicons (default: ./public)
+- `--manifest` - Generate a `site.webmanifest` file
+- `--name <string>` - Application name for the manifest
+- `--short-name <string>` - Short name for the manifest
+- `--bg <color>` - Background color for the manifest (default: #ffffff)
+- `--theme <color>` - Theme color for the manifest (default: #000000)
+
+**Examples:**
+
+```bash
+# Basic generation
+nxocto generate-favicons icon.png
+
+# With manifest and custom app name
+nxocto generate-favicons icon.svg --output ./public --manifest --name "My Awesome Project"
 ```
 
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
@@ -469,6 +502,16 @@ nxocto svg-to-component ./icons --output ./components --prefix My --suffix Icon
 nxocto svg-to-component ./icons --output ./components --javascript
 ```
 
+### Favicon Generation
+
+```bash
+# Basic generation
+nxocto generate-favicons icon.png
+
+# With manifest and custom app name
+nxocto generate-favicons icon.svg --output ./public --manifest --name "My Project"
+```
+
 > Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
 
 ## Programmatic Usage
@@ -542,6 +585,17 @@ const compResults = await svgToComponentsInFolder('./icons', {
 });
 
 console.log(`✓ Created ${compResults.length} components`);
+
+import { generateFavicons } from 'nxocto';
+
+// Generate favicons
+const faviconResult = await generateFavicons('./icon.png', {
+  outputDir: './public',
+  generateManifest: true,
+  appName: 'My App'
+});
+
+console.log(`✓ Generated ${faviconResult.filesGenerated.length} favicon files`);
 ```
 
 ## Development

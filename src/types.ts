@@ -18,6 +18,23 @@ export interface ConversionResult {
   error?: string;
 }
 
+export interface FaviconOptions {
+  outputDir?: string;
+  generateManifest?: boolean;
+  appName?: string;
+  appShortName?: string;
+  backgroundColor?: string;
+  themeColor?: string;
+}
+
+export interface FaviconResult {
+  success: boolean;
+  inputPath: string;
+  outputDir?: string;
+  filesGenerated?: string[];
+  error?: string;
+}
+
 export interface SvgToComponentOptions {
   outputDir?: string;
   typescript?: boolean;

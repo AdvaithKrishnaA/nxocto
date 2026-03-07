@@ -481,4 +481,42 @@ describe('CLI', () => {
       expect(stats.isFile()).toBe(true);
     });
   });
+
+  describe('generate-favicons', () => {
+    it('should generate favicons via CLI', async () => {
+      const sourceImage = path.join(testImagesDir, 'favicon-source.png');
+      await sharp({
+        create: {
+          width: 512,
+          height: 512,
+          channels: 4,
+          background: { r: 0, g: 255, b: 0, alpha: 1 }
+        }
+      }).png().toFile(sourceImage);
+
+      const { stdout } = await execAsync(
+        `node ${cliPath} generate-favicons ${sourceImage} --output ${testOutputDir} --manifest --name "CLI Test App"`
+      );
+
+      expect(stdout).toContain('Generated 9 favicon files');
+      expect(stdout).toContain('favicon.ico');
+      expect(stdout).toContain('site.webmanifest');
+
+      // Verify files exist
+      await expect(fs.stat(path.join(testOutputDir, 'favicon.ico'))).resolves.toBeDefined();
+      await expect(fs.stat(path.join(testOutputDir, 'icon.png'))).resolves.toBeDefined();
+      await expect(fs.stat(path.join(testOutputDir, 'site.webmanifest'))).resolves.toBeDefined();
+
+      const manifest = JSON.parse(await fs.readFile(path.join(testOutputDir, 'site.webmanifest'), 'utf-8'));
+      expect(manifest.name).toBe('CLI Test App');
+    });
+
+    it('should show error when source file is missing', async () => {
+      try {
+        await execAsync(`node ${cliPath} generate-favicons`);
+      } catch (error: any) {
+        expect(error.stderr).toContain('Error: Source file is required');
+      }
+    });
+  });
 });

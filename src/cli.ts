@@ -8,6 +8,7 @@ import { resizeImagesInFolders, handleOriginalsAfterReview as handleResizeOrigin
 import { findDuplicates, handleDuplicates } from './features/duplicate-finder/duplicateFinder';
 import { optimizePdfsInFolders, handleOriginalsAfterReview as handlePdfOriginalsAfterReview } from './features/pdf-optimizer/pdfOptimizer';
 import { svgToComponentsInFolder } from './features/svg-to-component/svgToComponent';
+import { generateFavicons } from './features/favicon-generator/faviconGenerator';
 import { ImageFormat } from './types';
 import * as readline from 'readline';
 import * as path from 'path';
@@ -41,6 +42,7 @@ if (args.length === 0) {
   console.log('  find-duplicates             Find and clean up duplicate assets');
   console.log('  optimize-pdf                Optimize PDF files');
   console.log('  svg-to-component            Convert SVG files to React components');
+  console.log('  generate-favicons           Generate favicons from a source image');
   console.log('');
   console.log('General Options:');
   console.log('  --output <folder>           Output folder for processed files');
@@ -96,6 +98,7 @@ if (args.length === 0) {
   console.log('  nxocto find-duplicates ./public/assets --delete --yes');
   console.log('  nxocto optimize-pdf ./documents --output ./optimized');
   console.log('  nxocto svg-to-component ./icons --output ./components/icons --typescript');
+  console.log('  nxocto generate-favicons icon.png --output ./public --manifest');
   process.exit(1);
 }
 
@@ -707,6 +710,61 @@ if (command === 'convert-images') {
 
       if (generateIndex && successful > 0) {
         console.log(`✓ Generated index file in ${outputFolder}`);
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err.message);
+      process.exit(1);
+    });
+} else if (command === 'generate-favicons') {
+  const sourceFile = args[1];
+
+  if (!sourceFile) {
+    console.error('Error: Source file is required');
+    process.exit(1);
+  }
+
+  // Parse options
+  let outputFolder = './public';
+  let generateManifest = false;
+  let appName = 'My App';
+  let appShortName = 'App';
+  let backgroundColor = '#ffffff';
+  let themeColor = '#000000';
+
+  for (let i = 2; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg === '--output' && args[i + 1]) {
+      outputFolder = args[++i];
+    } else if (arg === '--manifest') {
+      generateManifest = true;
+    } else if (arg === '--name' && args[i + 1]) {
+      appName = args[++i];
+    } else if (arg === '--short-name' && args[i + 1]) {
+      appShortName = args[++i];
+    } else if (arg === '--bg' && args[i + 1]) {
+      backgroundColor = args[++i];
+    } else if (arg === '--theme' && args[i + 1]) {
+      themeColor = args[++i];
+    }
+  }
+
+  generateFavicons(sourceFile, {
+    outputDir: outputFolder,
+    generateManifest,
+    appName,
+    appShortName,
+    backgroundColor,
+    themeColor
+  })
+    .then(result => {
+      if (result.success) {
+        console.log(`✓ Generated ${result.filesGenerated?.length} favicon files in ${result.outputDir}`);
+        result.filesGenerated?.forEach(file => console.log(`  ✓ ${file}`));
+      } else {
+        console.error(`✗ Failed to generate favicons: ${result.error}`);
+        process.exit(1);
       }
     })
     .catch(err => {
