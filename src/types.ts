@@ -18,6 +18,23 @@ export interface ConversionResult {
   error?: string;
 }
 
+export interface SvgSpriteOptions {
+  outputFile?: string;
+  prefix?: string;
+  optimize?: boolean;
+  generateTypes?: boolean;
+  typesOutputFile?: string;
+  recursive?: boolean;
+}
+
+export interface SvgSpriteResult {
+  success: boolean;
+  outputFile: string;
+  icons: string[];
+  typesOutputFile?: string;
+  error?: string;
+}
+
 export interface FaviconOptions {
   outputDir?: string;
   generateManifest?: boolean;

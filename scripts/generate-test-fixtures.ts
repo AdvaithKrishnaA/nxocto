@@ -321,6 +321,15 @@ node dist/cli.js svg-to-component test-fixtures/svg-icons --output test-fixtures
 node dist/cli.js svg-to-component test-fixtures/svg-icons --output test-fixtures/components --prefix Icon --typescript
 \`\`\`
 
+### SVG Sprite Generation
+\`\`\`bash
+# Basic sprite generation
+node dist/cli.js svg-sprite test-fixtures/svg-sprite-icons --output-file test-fixtures/output/sprite.svg
+
+# With prefix and types
+node dist/cli.js svg-sprite test-fixtures/svg-sprite-icons --output-file test-fixtures/output/prefixed-sprite.svg --prefix icon- --types --types-output test-fixtures/output/icon-ids.ts
+\`\`\`
+
 ## Regenerating Fixtures
 
 To regenerate these test fixtures:
@@ -351,6 +360,23 @@ async function generateFaviconFixtures() {
     .toFile(path.join(faviconDir, 'source-icon.png'));
 
   console.log('  ✓ Generated favicon test source image');
+}
+
+async function generateSvgSpriteFixtures() {
+  const spriteDir = path.join(FIXTURES_DIR, 'svg-sprite-icons');
+  await fs.mkdir(spriteDir, { recursive: true });
+
+  console.log('Generating SVG sprite test fixtures...');
+
+  const icon1 = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="currentColor"/></svg>`;
+  const icon2 = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="20" height="20" rx="2" fill="currentColor"/></svg>`;
+  const icon3 = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 22h20L12 2z" fill="currentColor"/></svg>`;
+
+  await fs.writeFile(path.join(spriteDir, 'circle.svg'), icon1);
+  await fs.writeFile(path.join(spriteDir, 'square.svg'), icon2);
+  await fs.writeFile(path.join(spriteDir, 'triangle.svg'), icon3);
+
+  console.log('  ✓ Generated 3 SVG icons for sprite generation');
 }
 
 async function generateUnusedAssetsFixtures() {
@@ -424,6 +450,7 @@ async function main() {
     await generateTestPdfs();
     await generateSvgToComponentFixtures();
     await generateFaviconFixtures();
+    await generateSvgSpriteFixtures();
     await generateReadme();
 
     console.log('\n✅ Test fixtures ready in test-fixtures/');

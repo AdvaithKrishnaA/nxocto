@@ -9,6 +9,7 @@ import { findDuplicates, handleDuplicates } from './features/duplicate-finder/du
 import { optimizePdfsInFolders, handleOriginalsAfterReview as handlePdfOriginalsAfterReview } from './features/pdf-optimizer/pdfOptimizer';
 import { svgToComponentsInFolder } from './features/svg-to-component/svgToComponent';
 import { generateFavicons } from './features/favicon-generator/faviconGenerator';
+import { generateSvgSprite } from './features/svg-sprite/svgSprite';
 import { ImageFormat } from './types';
 import * as readline from 'readline';
 import * as path from 'path';
@@ -43,6 +44,7 @@ if (args.length === 0) {
   console.log('  optimize-pdf                Optimize PDF files');
   console.log('  svg-to-component            Convert SVG files to React components');
   console.log('  generate-favicons           Generate favicons from a source image');
+  console.log('  svg-sprite                  Generate an SVG sprite from a folder of SVGs');
   console.log('');
   console.log('General Options:');
   console.log('  --output <folder>           Output folder for processed files');
@@ -99,6 +101,7 @@ if (args.length === 0) {
   console.log('  nxocto optimize-pdf ./documents --output ./optimized');
   console.log('  nxocto svg-to-component ./icons --output ./components/icons --typescript');
   console.log('  nxocto generate-favicons icon.png --output ./public --manifest');
+  console.log('  nxocto svg-sprite ./icons --output-file ./public/sprite.svg --types');
   process.exit(1);
 }
 
@@ -764,6 +767,65 @@ if (command === 'convert-images') {
         result.filesGenerated?.forEach(file => console.log(`  ✓ ${file}`));
       } else {
         console.error(`✗ Failed to generate favicons: ${result.error}`);
+        process.exit(1);
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err.message);
+      process.exit(1);
+    });
+} else if (command === 'svg-sprite') {
+  const sourceFolder = args[1];
+
+  if (!sourceFolder) {
+    console.error('Error: Source folder is required');
+    process.exit(1);
+  }
+
+  // Parse options
+  let outputFile = 'sprite.svg';
+  let prefix = '';
+  let optimize = true;
+  let generateTypes = false;
+  let typesOutputFile: string | undefined;
+  let recursive = true;
+
+  for (let i = 2; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg === '--output-file' && args[i + 1]) {
+      outputFile = args[++i];
+    } else if (arg === '--prefix' && args[i + 1]) {
+      prefix = args[++i];
+    } else if (arg === '--no-optimize') {
+      optimize = false;
+    } else if (arg === '--types') {
+      generateTypes = true;
+    } else if (arg === '--types-output' && args[i + 1]) {
+      typesOutputFile = args[++i];
+      generateTypes = true;
+    } else if (arg === '--no-recursive') {
+      recursive = false;
+    }
+  }
+
+  generateSvgSprite(sourceFolder, {
+    outputFile,
+    prefix,
+    optimize,
+    generateTypes,
+    typesOutputFile,
+    recursive
+  })
+    .then(result => {
+      if (result.success) {
+        console.log(`✓ Generated SVG sprite with ${result.icons.length} icons`);
+        console.log(`  Output: ${result.outputFile}`);
+        if (result.typesOutputFile) {
+          console.log(`  Types: ${result.typesOutputFile}`);
+        }
+      } else {
+        console.error(`✗ Failed to generate SVG sprite: ${result.error}`);
         process.exit(1);
       }
     })
