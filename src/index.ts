@@ -8,6 +8,7 @@ export { findDuplicates, handleDuplicates } from './features/duplicate-finder/du
 export { optimizePdfsInFolders, handleOriginalsAfterReview as handlePdfOriginalsAfterReview } from './features/pdf-optimizer/pdfOptimizer';
 export { svgToComponent, svgToComponentsInFolder, generateIndexFile } from './features/svg-to-component/svgToComponent';
 export { generateFavicons } from './features/favicon-generator/faviconGenerator';
+export { generateSvgSprite } from './features/svg-sprite/svgSprite';
 export type {
   ImageConversionOptions,
   ConversionResult,
