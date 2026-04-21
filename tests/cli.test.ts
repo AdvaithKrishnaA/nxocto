@@ -482,6 +482,61 @@ describe('CLI', () => {
     });
   });
 
+  describe('svg-sprite', () => {
+    const testSvgsDir = path.join(testDir, 'svgs_sprite');
+
+    beforeEach(async () => {
+      await fs.mkdir(testSvgsDir, { recursive: true });
+      await fs.writeFile(
+        path.join(testSvgsDir, 'a.svg'),
+        `<svg viewBox="0 0 10 10"><rect width="10" height="10" /></svg>`
+      );
+      await fs.writeFile(
+        path.join(testSvgsDir, 'b.svg'),
+        `<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" /></svg>`
+      );
+    });
+
+    it('should generate SVG sprite via CLI', async () => {
+      const spriteFile = path.join(testOutputDir, 'sprite.svg');
+      const { stdout } = await execAsync(
+        `node ${cliPath} svg-sprite ${testSvgsDir} --output-file ${spriteFile}`
+      );
+
+      expect(stdout).toContain('Generated SVG sprite with 2 icons');
+      expect(stdout).toContain('sprite.svg');
+
+      const content = await fs.readFile(spriteFile, 'utf-8');
+      expect(content).toContain('id="a"');
+      expect(content).toContain('id="b"');
+    });
+
+    it('should generate types via CLI', async () => {
+      const spriteFile = path.join(testOutputDir, 'sprite.svg');
+      const typesFile = path.join(testOutputDir, 'icons.ts');
+      const { stdout } = await execAsync(
+        `node ${cliPath} svg-sprite ${testSvgsDir} --output-file ${spriteFile} --types --types-output ${typesFile}`
+      );
+
+      expect(stdout).toContain('Types:');
+      expect(stdout).toContain('icons.ts');
+
+      const content = await fs.readFile(typesFile, 'utf-8');
+      expect(content).toContain("'a' | 'b'");
+    });
+
+    it('should respect prefix via CLI', async () => {
+      const spriteFile = path.join(testOutputDir, 'prefixed-sprite.svg');
+      await execAsync(
+        `node ${cliPath} svg-sprite ${testSvgsDir} --output-file ${spriteFile} --prefix icon-`
+      );
+
+      const content = await fs.readFile(spriteFile, 'utf-8');
+      expect(content).toContain('id="icon-a"');
+      expect(content).toContain('id="icon-b"');
+    });
+  });
+
   describe('generate-favicons', () => {
     it('should generate favicons via CLI', async () => {
       const sourceImage = path.join(testImagesDir, 'favicon-source.png');

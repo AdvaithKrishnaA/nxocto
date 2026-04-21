@@ -80,6 +80,13 @@ Auto-run utilities for Next.js projects with built-in image optimization, refere
 - Automatic resizing to standard sizes (16, 32, 48, 180, 192, 512)
 - Optional `site.webmanifest` generation
 
+### 🔧 SVG Sprite Generator
+- Combine multiple SVGs into a single optimized sprite file
+- Uses the `<symbol>` pattern for efficient loading
+- Automatic SVGO optimization with unique ID prefixing
+- Optional TypeScript/JavaScript type generation for icon IDs
+- Perfect for performance-focused Next.js applications
+
 ## Installation
 
 Clone the repository and install dependencies:
@@ -201,6 +208,341 @@ nxocto svg-to-component ./icons --output ./components/icons
 
 # Conversion with prefix and index file
 nxocto svg-to-component ./icons --output ./components --prefix Icon --typescript
+```
+
+### SVG Sprite Generation
+
+```bash
+# Basic sprite generation
+nxocto svg-sprite ./icons --output-file ./public/sprite.svg
+
+# With prefix and type generation
+nxocto svg-sprite ./icons --output-file ./public/sprite.svg --prefix icon- --types
+```
+
+### generate-favicons
+
+Generate a complete set of favicons from a single high-resolution source image.
+
+```bash
+nxocto generate-favicons <source-file> [options]
+```
+
+**Options:**
+- `--output <folder>` - Output folder for generated favicons (default: ./public)
+- `--manifest` - Generate a `site.webmanifest` file
+- `--name <string>` - Application name for the manifest
+- `--short-name <string>` - Short name for the manifest
+- `--bg <color>` - Background color for the manifest (default: #ffffff)
+- `--theme <color>` - Theme color for the manifest (default: #000000)
+
+**Examples:**
+
+```bash
+# Basic generation
+nxocto generate-favicons icon.png
+
+# With manifest and custom app name
+nxocto generate-favicons icon.svg --output ./public --manifest --name "My Awesome Project"
+```
+
+> Note: If you haven't run `pnpm link --global`, use `node dist/src/cli.js` instead of `nxocto`
+
+### With Reference Updates
+
+Automatically update image references in your code:
+
+```bash
+nxocto convert-images ./public/images --output ./public/optimized --refs ./src,./pages
+```
+
+This will:
+1. Convert all images in `./public/images` to WebP
+2. Save converted images to `./public/optimized`
+3. Update all references in `./src` and `./pages` to point to the new files
+
+### With Original File Management
+
+```bash
+# Archive originals (with confirmation)
+nxocto convert-images ./images --output ./optimized --archive ./archive
+
+# Delete originals (with confirmation)
+nxocto convert-images ./images --output ./optimized --delete
+
+# Skip confirmation for automation
+nxocto convert-images ./images --output ./optimized --delete --yes
+```
+
+## CLI Reference
+
+### convert-images
+
+Convert images to modern web formats.
+
+```bash
+nxocto convert-images <source-folder> [options]
+```
+
+**Options:**
+- `--output <folder>` - Output folder for converted images
+- `--refs <folder1,folder2>` - Comma-separated folders to update references in
+- `--format <webp|avif>` - Output format (default: webp)
+- `--quality <1-100>` - Quality setting (default: 80)
+- `--delete` - Delete original files after conversion (prompts for confirmation)
+- `--archive <folder>` - Move original files to archive folder (prompts for confirmation)
+- `--yes, -y` - Skip confirmation prompts (for automation)
+
+**Examples:**
+
+```bash
+# Basic conversion
+nxocto convert-images ./images --output ./optimized
+
+# With reference updates
+nxocto convert-images ./public/images --refs ./src,./pages --output ./optimized
+
+# Archive originals
+nxocto convert-images ./images --archive ./archive --output ./optimized
+
+# Automated workflow (no prompts)
+nxocto convert-images ./images --delete --yes --output ./optimized
+```
+
+### optimize-svg
+
+Optimize SVG files for smaller size.
+
+```bash
+nxocto optimize-svg <source-folder> [options]
+```
+
+**Options:**
+- `--output <folder>` - Output folder for optimized SVGs
+- `--precision <number>` - Decimal precision for numeric values (default: 2)
+- `--no-multipass` - Disable multipass optimization
+- `--refs <folders>` - Folders to update references in
+- `--delete` - Delete original files after optimization (prompts for confirmation)
+- `--archive <folder>` - Move original files to archive folder (prompts for confirmation)
+- `--yes, -y` - Skip confirmation prompts (for automation)
+
+**Examples:**
+
+```bash
+# Basic optimization
+nxocto optimize-svg ./icons
+
+# With custom precision and output
+nxocto optimize-svg ./public/icons --output ./public/optimized --precision 1
+
+# Archive originals
+nxocto optimize-svg ./icons --archive ./archive --output ./optimized
+```
+
+### extract-metadata
+
+Extract dimensions and metadata from assets.
+
+```bash
+nxocto extract-metadata <source-folder> [options]
+```
+
+**Options:**
+- `--output-file <file>` - Output JSON file (default: metadata.json)
+- `--no-size` - Exclude file size from metadata
+- `--no-recursive` - Disable recursive scanning
+
+**Examples:**
+
+```bash
+# Basic extraction
+nxocto extract-metadata ./public/images
+
+# Custom output file
+nxocto extract-metadata ./assets --output-file ./data/metadata.json
+```
+
+### find-unused
+
+Find assets that are not referenced in your source code.
+
+```bash
+nxocto find-unused <source-folder> [options]
+```
+
+**Options:**
+- `--refs <folder1,folder2>` - Comma-separated folders to scan for references (required)
+- `--output-file <file>` - Save list of unused assets to a JSON file
+- `--delete` - Delete unused assets (prompts for confirmation)
+- `--archive <folder>` - Move unused assets to archive folder (prompts for confirmation)
+- `--no-recursive` - Disable recursive scanning of source folder
+- `--yes, -y` - Skip confirmation prompts
+
+**Examples:**
+
+```bash
+# Find unused images
+nxocto find-unused ./public/images --refs ./src,./pages
+
+# Archive unused assets
+nxocto find-unused ./public/images --refs ./src --archive ./unused-archive --yes
+```
+
+### generate-placeholders
+
+Generate blurry base64 placeholders for images.
+
+```bash
+nxocto generate-placeholders <source-folder> [options]
+```
+
+**Options:**
+- `--output-file <file>` - Output JSON file (default: placeholders.json)
+- `--size <number>` - Width of placeholder in pixels (default: 10)
+- `--quality <number>` - Quality of placeholder (default: 50)
+- `--no-recursive` - Disable recursive scanning
+
+**Examples:**
+
+```bash
+# Basic generation
+nxocto generate-placeholders ./public/images
+
+# Custom size and output
+nxocto generate-placeholders ./public/images --size 20 --output-file ./placeholders.json
+```
+
+### resize-images
+
+Batch resize images to specific widths.
+
+```bash
+nxocto resize-images <source-folder> [options]
+```
+
+**Options:**
+- `--widths <w1,w2,...>` - Comma-separated widths to resize to (required)
+- `--output <folder>` - Output folder for resized images
+- `--format <webp|avif|original>` - Output format (default: original)
+- `--quality <1-100>` - Quality setting (default: 80)
+- `--delete` - Delete original files after processing (prompts for confirmation)
+- `--archive <folder>` - Move original files to archive folder (prompts for confirmation)
+- `--yes, -y` - Skip confirmation prompts
+
+**Examples:**
+
+```bash
+# Resize to multiple widths
+nxocto resize-images ./images --widths 300,600 --output ./resized
+
+# With format conversion
+nxocto resize-images ./images --widths 800 --format webp --output ./optimized
+```
+
+### find-duplicates
+
+Find and clean up duplicate assets.
+
+```bash
+nxocto find-duplicates <source-folder> [options]
+```
+
+**Options:**
+- `--refs <folders>` - Folders to update references in
+- `--delete` - Delete duplicates (keeping one)
+- `--archive <folder>` - Move duplicates to archive
+- `--output-file <file>` - Save results to JSON
+- `--no-recursive` - Disable recursive scanning
+- `--yes, -y` - Skip confirmation prompts
+
+**Examples:**
+
+```bash
+# Basic scan
+nxocto find-duplicates ./public/assets
+
+# Merge duplicates
+nxocto find-duplicates ./public/assets --refs ./src --delete --yes
+```
+
+### optimize-pdf
+
+Optimize PDF files for smaller size.
+
+```bash
+nxocto optimize-pdf <source-folder> [options]
+```
+
+**Options:**
+- `--output <folder>` - Output folder for optimized PDFs
+- `--delete` - Delete original files after optimization (prompts for confirmation)
+- `--archive <folder>` - Move original files to archive folder (prompts for confirmation)
+- `--yes, -y` - Skip confirmation prompts (for automation)
+
+**Examples:**
+
+```bash
+# Basic optimization
+nxocto optimize-pdf ./documents
+
+# With archive and skip confirmation
+nxocto optimize-pdf ./documents --archive ./archive --yes
+```
+
+### svg-to-component
+
+Convert SVG icons into optimized React components (TSX/JSX).
+
+```bash
+nxocto svg-to-component <source-folder> [options]
+```
+
+**Options:**
+- `--output <folder>` - Output directory for generated components (default: ./components/icons)
+- `--typescript` - Generate TypeScript (.tsx) components (default)
+- `--javascript` - Generate JavaScript (.jsx) components
+- `--prefix <string>` - String to prepend to component names
+- `--suffix <string>` - String to append to component names
+- `--no-index` - Disable barrel file (index.ts/js) generation
+- `--no-dimensions` - Keep width/height in SVG root
+
+**Examples:**
+
+```bash
+# Basic conversion to TypeScript
+nxocto svg-to-component ./icons --output ./components/icons
+
+# Conversion with prefix and suffix
+nxocto svg-to-component ./icons --output ./components --prefix My --suffix Icon
+
+# Generate JavaScript components
+nxocto svg-to-component ./icons --output ./components --javascript
+```
+
+### svg-sprite
+
+Generate a single SVG sprite file from a directory of SVG icons.
+
+```bash
+nxocto svg-sprite <source-folder> [options]
+```
+
+**Options:**
+- `--output-file <file>` - Output file for the generated sprite (default: sprite.svg)
+- `--prefix <string>` - Prefix for icon IDs
+- `--no-optimize` - Disable SVGO optimization
+- `--types` - Generate a type definition file for icon IDs
+- `--types-output <file>` - Custom path for the generated types file
+- `--no-recursive` - Disable recursive scanning
+
+**Examples:**
+
+```bash
+# Basic generation
+nxocto svg-sprite ./icons --output-file ./public/sprite.svg
+
+# With types and prefix
+nxocto svg-sprite ./icons --output-file ./public/sprite.svg --prefix ui- --types
 ```
 
 ### generate-favicons
@@ -596,6 +938,16 @@ const faviconResult = await generateFavicons('./icon.png', {
 });
 
 console.log(`✓ Generated ${faviconResult.filesGenerated.length} favicon files`);
+
+import { generateSvgSprite } from 'nxocto';
+
+// Generate SVG sprite
+const spriteResult = await generateSvgSprite('./icons', {
+  outputFile: './public/sprite.svg',
+  generateTypes: true
+});
+
+console.log(`✓ Generated sprite with ${spriteResult.icons.length} icons`);
 ```
 
 ## Development
@@ -624,13 +976,13 @@ Generate test fixtures with sample images and code files:
 pnpm generate-fixtures
 ```
 
-This creates a `test-fixtures/` directory with sample data. Then try:
+This creates a \`test-fixtures/\` directory with sample data. Then try:
 
 ```bash
 nxocto convert-images test-fixtures/images --output test-fixtures/output --refs test-fixtures/code
 ```
 
-See `test-fixtures/README.md` for more examples.
+See \`test-fixtures/README.md\` for more examples.
 
 ### Running Tests
 
